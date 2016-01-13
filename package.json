@@ -1,0 +1,22 @@
+{
+  "name": "erc20-ledger",
+  "version": "0.1.0",
+  "private": true,
+  "description": "ERC-20 Transfer indexer with confirmations, reorg handling and on-chain reconciliation",
+  "engines": { "node": ">=4.2.0" },
+  "scripts": {
+    "build": "tsc -p .",
+    "start": "node dist/src/main.js",
+    "migrate": "node dist/src/migrate.js",
+    "rebuild-balances": "node dist/src/rebuild.js",
+    "test": "npm run build && mocha dist/test"
+  },
+  "dependencies": {
+    "bn.js": "4.6.1",
+    "pg": "4.4.3"
+  },
+  "devDependencies": {
+    "mocha": "2.3.4",
+    "typescript": "1.7.5"
+  }
+}
