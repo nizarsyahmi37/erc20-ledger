@@ -9,3 +9,4 @@ The format follows [Keep a Changelog](http://keepachangelog.com/) and the projec
 - Project scaffold targeting Node 4.2 LTS: TypeScript 1.7.5 (ES6 target, CommonJS), `pg` 4.4.3 and `bn.js` 4.6.1 as the only runtime dependencies, mocha 2.3.4 for tests
 - Dependencies pinned to exact versions
 - PostgreSQL 9.5 via docker-compose (v1 file format) and `.env.example` configuration template
+- Hand-written minimal type declarations for the Node 4 modules, node-postgres 4.x, bn.js and mocha globals used by the project
