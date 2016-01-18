@@ -13,3 +13,7 @@ The format follows [Keep a Changelog](http://keepachangelog.com/) and the projec
 - Hash-keyed `blocks` and `events` tables so competing forks coexist
 - `applied_blocks`, `balances` and `token_supply` as derived, rebuildable state
 - `reconciliation_runs` / `reconciliation_diffs` and `network_state` (halt flag, fixed token set), keyed by Ethereum network id
+- Promise wrapper over node-postgres 4.x callback API and its global pool
+- `tx()` helper with configurable isolation level
+- Advisory-lock namespaces for per-network apply and leader election
+- Idempotent SQL migration runner (`npm run migrate`) serialised by an advisory lock
