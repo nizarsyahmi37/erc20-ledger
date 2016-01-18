@@ -10,3 +10,6 @@ The format follows [Keep a Changelog](http://keepachangelog.com/) and the projec
 - Dependencies pinned to exact versions
 - PostgreSQL 9.5 via docker-compose (v1 file format) and `.env.example` configuration template
 - Hand-written minimal type declarations for the Node 4 modules, node-postgres 4.x, bn.js and mocha globals used by the project
+- Hash-keyed `blocks` and `events` tables so competing forks coexist
+- `applied_blocks`, `balances` and `token_supply` as derived, rebuildable state
+- `reconciliation_runs` / `reconciliation_diffs` and `network_state` (halt flag, fixed token set), keyed by Ethereum network id
