@@ -17,3 +17,5 @@ The format follows [Keep a Changelog](http://keepachangelog.com/) and the projec
 - `tx()` helper with configurable isolation level
 - Advisory-lock namespaces for per-network apply and leader election
 - Idempotent SQL migration runner (`npm run migrate`) serialised by an advisory lock
+- Env loader validating token addresses, integers and required variables
+- Settings for confirmations, reorg depth, batch size, polling and reconciliation intervals
