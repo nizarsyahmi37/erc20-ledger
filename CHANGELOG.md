@@ -19,3 +19,6 @@ The format follows [Keep a Changelog](http://keepachangelog.com/) and the projec
 - Idempotent SQL migration runner (`npm run migrate`) serialised by an advisory lock
 - Env loader validating token addresses, integers and required variables
 - Settings for confirmations, reorg depth, batch size, polling and reconciliation intervals
+- Transfer decoder classifying mint (from 0x0) and burn (to 0x0)
+- uint256 amounts converted from hex to exact decimal strings with bn.js
+- Transfer-shaped logs that are not ERC-20 (wrong topic count or data size) are skipped instead of misparsed
