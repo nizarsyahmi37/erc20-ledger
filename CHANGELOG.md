@@ -25,3 +25,6 @@ The format follows [Keep a Changelog](http://keepachangelog.com/) and the projec
 - Whole-block ingestion (header plus all logs) in a single transaction
 - Duplicate deliveries are no-ops via `ON CONFLICT DO NOTHING`
 - Contradicting re-deliveries raise `IngestConflictError` instead of being merged
+- `applyThrough` walks parent hashes from a trusted target; returns `gap` or `diverged` when the chain is incomplete or disconnected
+- Atomic balance, supply and `applied_blocks` update under a per-network advisory lock
+- `rollbackTo`, `rebuildBalances` (`npm run rebuild-balances`) and `halt`
