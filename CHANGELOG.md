@@ -28,3 +28,5 @@ The format follows [Keep a Changelog](http://keepachangelog.com/) and the projec
 - `applyThrough` walks parent hashes from a trusted target; returns `gap` or `diverged` when the chain is incomplete or disconnected
 - Atomic balance, supply and `applied_blocks` update under a per-network advisory lock
 - `rollbackTo`, `rebuildBalances` (`npm run rebuild-balances`) and `halt`
+- HTTP(S) JSON-RPC 2.0 client with batching, timeout and exponential backoff retries
+- Range `eth_getLogs` and historical `balanceOf` / `totalSupply` via `eth_call`
