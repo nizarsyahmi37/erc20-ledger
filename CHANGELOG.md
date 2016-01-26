@@ -30,3 +30,8 @@ The format follows [Keep a Changelog](http://keepachangelog.com/) and the projec
 - `rollbackTo`, `rebuildBalances` (`npm run rebuild-balances`) and `halt`
 - HTTP(S) JSON-RPC 2.0 client with batching, timeout and exponential backoff retries
 - Range `eth_getLogs` and historical `balanceOf` / `totalSupply` via `eth_call`
+- Tick ingests up to head and applies only up to `head - CONFIRMATIONS`
+- Fork-consistent log fetching without a blockHash filter: header/log/header sandwich, blocks whose hash changed mid-fetch are skipped and retried
+- Applied tip is re-checked against the node; common ancestor found and balances rolled back on deep reorgs
+- Halts beyond `MAX_REORG_DEPTH`; a lagging node is treated as transient, never as a reorg
+- Startup guard refusing a changed `TOKENS` / `START_BLOCK` for an existing database
