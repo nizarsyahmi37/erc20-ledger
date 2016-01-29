@@ -38,3 +38,6 @@ The format follows [Keep a Changelog](http://keepachangelog.com/) and the projec
 - Comparison pinned to the applied tip inside a single REPEATABLE READ snapshot
 - Outcomes `ok`, `drift`, `inconclusive` (reorg during scan) and `error`
 - Mismatches re-queried once before being recorded; results persisted with exact diffs
+- `GET /balances/:token/:holder` returning confirmed balance with its block number and hash
+- `GET /healthz` with cursor, halt state and last reconciliation
+- Optional bearer-authenticated `POST /ingest` with strict validation, constant-time token check and body size limit
