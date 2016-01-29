@@ -35,3 +35,6 @@ The format follows [Keep a Changelog](http://keepachangelog.com/) and the projec
 - Applied tip is re-checked against the node; common ancestor found and balances rolled back on deep reorgs
 - Halts beyond `MAX_REORG_DEPTH`; a lagging node is treated as transient, never as a reorg
 - Startup guard refusing a changed `TOKENS` / `START_BLOCK` for an existing database
+- Comparison pinned to the applied tip inside a single REPEATABLE READ snapshot
+- Outcomes `ok`, `drift`, `inconclusive` (reorg during scan) and `error`
+- Mismatches re-queried once before being recorded; results persisted with exact diffs
