@@ -43,3 +43,5 @@ The format follows [Keep a Changelog](http://keepachangelog.com/) and the projec
 - Optional bearer-authenticated `POST /ingest` with strict validation, constant-time token check and body size limit
 - Service entrypoint with leader election by advisory lock and graceful shutdown
 - Periodic reconciliation with status logging; stops on halt for operator action
+- In-memory chain supporting forks, used against a real PostgreSQL
+- 15 mocha tests: idempotency, out-of-order delivery, orphan forks, deep reorg rollback, reorg during log fetch, halt, reconciliation outcomes and concurrent appliers
