@@ -45,3 +45,5 @@ The format follows [Keep a Changelog](http://keepachangelog.com/) and the projec
 - Periodic reconciliation with status logging; stops on halt for operator action
 - In-memory chain supporting forks, used against a real PostgreSQL
 - 15 mocha tests: idempotency, out-of-order delivery, orphan forks, deep reorg rollback, reorg during log fetch, halt, reconciliation outcomes and concurrent appliers
+- README covering design, confirmations and failure modes for duplicates, out-of-order delivery, reorgs, node, process and reconciliation
+- Compatibility baseline table and documented limits for production use
