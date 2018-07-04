@@ -5,9 +5,18 @@ The format follows [Keep a Changelog](http://keepachangelog.com/) and the projec
 
 ## [Unreleased]
 
+### Added
+- @types/node and @types/mocha
+
 ### Changed
 - docker-compose file moved to the version 3 format and PostgreSQL 10 (9.5 remains the minimum supported version)
 - .env.example mentions geth and Parity as supported JSON-RPC endpoints
+- Runtime baseline raised from Node 4.2 to Node 8.11 LTS (engines.node >= 8.11.0)
+- TypeScript 1.7.5 -> 2.9.2, compiling to ES2017 so async/await is native instead of a generator helper
+- mocha 2.3.4 -> 5.2.0
+
+### Removed
+- Hand-written Node and mocha typings (typings/node-lite.d.ts, typings/mocha-lite.d.ts)
 
 ## [0.1.0] - 2016-02-04
 

@@ -53,7 +53,7 @@ function sleep(ms: number): Promise<void> {
 function httpPost(target: string, payload: string, timeoutMs: number): Promise<string> {
   return new Promise<string>((resolve, reject) => {
     const u = urlLib.parse(target);
-    const mod = u.protocol === "https:" ? https : http;
+    const mod = (u.protocol === "https:" ? https : http) as typeof http; // same request() signature
     const req = mod.request(
       {
         hostname: u.hostname,
