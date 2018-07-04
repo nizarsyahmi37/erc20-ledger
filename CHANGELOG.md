@@ -3,6 +3,12 @@
 All notable changes to this project are documented in this file.
 The format follows [Keep a Changelog](http://keepachangelog.com/) and the project adheres to [Semantic Versioning](http://semver.org/).
 
+## [Unreleased]
+
+### Changed
+- docker-compose file moved to the version 3 format and PostgreSQL 10 (9.5 remains the minimum supported version)
+- .env.example mentions geth and Parity as supported JSON-RPC endpoints
+
 ## [0.1.0] - 2016-02-04
 
 ### Added
