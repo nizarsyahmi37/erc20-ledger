@@ -1,5 +1,3 @@
-"use strict";
-
 export interface Config {
   databaseUrl: string;
   networkId: number;
@@ -12,37 +10,35 @@ export interface Config {
   maxBlocksPerTick: number;
   reconcileIntervalMs: number;
   apiPort: number;
-  ingestToken: string;
+  ingestToken: string | null;
 }
 
-function req(env: any, key: string): string {
+function req(env: NodeJS.ProcessEnv, key: string): string {
   const v = env[key];
-  if (!v) throw new Error("missing required env var " + key);
+  if (!v) throw new Error(`missing required env var ${key}`);
   return v;
 }
 
-function int(env: any, key: string, dflt: number, min: number): number {
+function int(env: NodeJS.ProcessEnv, key: string, dflt: number, min: number): number {
   const raw = env[key];
   if (raw === undefined || raw === "") return dflt;
   const n = Number(raw);
-  if (!Number.isInteger(n) || n < min) throw new Error(key + " must be an integer >= " + min);
+  if (!Number.isInteger(n) || n < min) throw new Error(`${key} must be an integer >= ${min}`);
   return n;
 }
 
-export function loadConfig(env: any): Config {
+export function loadConfig(env: NodeJS.ProcessEnv): Config {
   const tokens = req(env, "TOKENS")
     .split(",")
-    .map((t: string) => t.trim().toLowerCase())
-    .filter((t: string) => t.length > 0);
+    .map(t => t.trim().toLowerCase())
+    .filter(t => t.length > 0);
   if (tokens.length === 0) throw new Error("TOKENS is empty");
-  tokens.forEach((t: string) => {
-    if (!/^0x[0-9a-f]{40}$/.test(t)) throw new Error("bad token address: " + t);
-  });
+  for (const t of tokens) if (!/^0x[0-9a-f]{40}$/.test(t)) throw new Error(`bad token address: ${t}`);
   return {
     databaseUrl: req(env, "DATABASE_URL"),
     networkId: int(env, "NETWORK_ID", 1, 0),
     rpcUrl: req(env, "RPC_URL"),
-    tokens: Array.from(new Set(tokens)).sort(),
+    tokens: [...new Set(tokens)].sort(),
     startBlock: int(env, "START_BLOCK", 0, 0),
     confirmations: int(env, "CONFIRMATIONS", 12, 0),
     maxReorgDepth: int(env, "MAX_REORG_DEPTH", 256, 1),

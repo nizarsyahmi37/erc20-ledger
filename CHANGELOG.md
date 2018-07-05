@@ -19,6 +19,8 @@ The format follows [Keep a Changelog](http://keepachangelog.com/) and the projec
 - bn.js 4.6.1 -> 4.11.8
 - pg 4.4.3 -> 7.4.3: the hand-written Promise wrapper over the global pool is replaced by the built-in Pool, created with createPool()
 - Entrypoints and tests create their pool with createPool()
+- Config loader uses template strings, array spread and the typed NodeJS.ProcessEnv
+- ingestToken is typed string | null
 
 ### Removed
 - Hand-written Node and mocha typings (typings/node-lite.d.ts, typings/mocha-lite.d.ts)
