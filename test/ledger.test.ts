@@ -1,7 +1,7 @@
 "use strict";
 import assert = require("assert");
 import { applyThrough, getCursor, rebuildBalances } from "../src/apply";
-import { Pool } from "../src/db";
+import { createPool, Pool } from "../src/db";
 import { decodeTransfer, TRANSFER_TOPIC, ZERO_ADDRESS } from "../src/decode";
 import { BlockBundle, ingestBundles, IngestConflictError } from "../src/ingest";
 import { migrate } from "../src/migrate";
@@ -58,7 +58,7 @@ async function rejects(p: Promise<any>, matcher: any): Promise<void> {
   }
 
   before(async () => {
-    pool = new Pool(URL);
+    pool = createPool(URL);
     await migrate(pool);
   });
   after(() => {

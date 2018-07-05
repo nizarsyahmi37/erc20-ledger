@@ -1,7 +1,7 @@
 "use strict";
 import { createApi } from "./api";
 import { loadConfig } from "./config";
-import { LOCK_NS_LEADER, Pool } from "./db";
+import { createPool, LOCK_NS_LEADER } from "./db";
 import { migrate } from "./migrate";
 import { initNetworkState, tick } from "./poller";
 import { reconcile } from "./reconcile";
@@ -15,7 +15,7 @@ function sleep(ms: number): Promise<void> {
 
 async function main(): Promise<void> {
   const cfg = loadConfig(process.env);
-  const pool = new Pool(cfg.databaseUrl);
+  const pool = createPool(cfg.databaseUrl);
   await migrate(pool);
   await initNetworkState(pool, cfg);
   const rpc = new JsonRpcClient(cfg.rpcUrl);

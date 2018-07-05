@@ -1,7 +1,7 @@
 "use strict";
 import fs = require("fs");
 import path = require("path");
-import { Pool, tx } from "./db";
+import { createPool, Pool, tx } from "./db";
 
 // Compiled layout is dist/src/migrate.js, so migrations live two levels up.
 const DIR = path.join(__dirname, "..", "..", "migrations");
@@ -36,7 +36,7 @@ export async function migrate(pool: Pool): Promise<string[]> {
 }
 
 if (require.main === module) {
-  const pool = new Pool(process.env.DATABASE_URL);
+  const pool = createPool(process.env.DATABASE_URL || "");
   migrate(pool).then(
     (done) => {
       console.log(done.length > 0 ? "applied: " + done.join(", ") : "up to date");

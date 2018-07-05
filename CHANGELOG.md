@@ -8,6 +8,7 @@ The format follows [Keep a Changelog](http://keepachangelog.com/) and the projec
 ### Added
 - @types/node and @types/mocha
 - @types/bn.js
+- @types/pg
 
 ### Changed
 - docker-compose file moved to the version 3 format and PostgreSQL 10 (9.5 remains the minimum supported version)
@@ -16,10 +17,13 @@ The format follows [Keep a Changelog](http://keepachangelog.com/) and the projec
 - TypeScript 1.7.5 -> 2.9.2, compiling to ES2017 so async/await is native instead of a generator helper
 - mocha 2.3.4 -> 5.2.0
 - bn.js 4.6.1 -> 4.11.8
+- pg 4.4.3 -> 7.4.3: the hand-written Promise wrapper over the global pool is replaced by the built-in Pool, created with createPool()
+- Entrypoints and tests create their pool with createPool()
 
 ### Removed
 - Hand-written Node and mocha typings (typings/node-lite.d.ts, typings/mocha-lite.d.ts)
 - Hand-written typings/bn.d.ts
+- Hand-written typings/pg.d.ts and the typings directory
 
 ## [0.1.0] - 2016-02-04
 

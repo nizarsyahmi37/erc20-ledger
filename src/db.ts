@@ -1,5 +1,7 @@
-"use strict";
-import pg = require("pg");
+import { Pool, PoolClient } from "pg";
+
+export { Pool };
+export type Conn = PoolClient;
 
 export interface QueryResult {
   rows: any[];
@@ -10,62 +12,23 @@ export interface Queryable {
   query(text: string, values?: any[]): Promise<QueryResult>;
 }
 
-// node-postgres 4.x is callback-only and has no Pool class; this wraps its global pool in Promises.
-// int8/numeric come back as strings, which is what we want: uint256 amounts stay decimal strings
-// and never pass through a JS double.
-export class Conn implements Queryable {
-  constructor(private client: any, private done: (destroy?: any) => void) {}
-
-  query(text: string, values?: any[]): Promise<QueryResult> {
-    return new Promise<QueryResult>((resolve, reject) => {
-      this.client.query(text, values || [], (err: any, res: any) => (err ? reject(err) : resolve(res)));
-    });
-  }
-
-  release(): void {
-    this.done();
-  }
+// int8/numeric come back from node-postgres as strings, which is what we want: uint256 amounts stay
+// decimal strings and never pass through a JS double.
+export function createPool(connectionString: string, max = 10): Pool {
+  const pool = new Pool({ connectionString, max });
+  pool.on("error", err => console.error("[pg] idle client error", err.message));
+  return pool;
 }
 
-export class Pool implements Queryable {
-  constructor(private url: string, size?: number) {
-    pg.defaults.poolSize = size || 10;
-  }
-
-  connect(): Promise<Conn> {
-    return new Promise<Conn>((resolve, reject) => {
-      pg.connect(this.url, (err: any, client: any, done: (destroy?: any) => void) => {
-        if (err) reject(err);
-        else resolve(new Conn(client, done));
-      });
-    });
-  }
-
-  async query(text: string, values?: any[]): Promise<QueryResult> {
-    const c = await this.connect();
-    try {
-      return await c.query(text, values);
-    } finally {
-      c.release();
-    }
-  }
-
-  end(): void {
-    pg.end();
-  }
-}
-
-export async function tx<T>(pool: Pool, fn: (c: Conn) => Promise<T>, isolation?: string): Promise<T> {
+export async function tx<T>(pool: Pool, fn: (c: Conn) => Promise<T>, isolation = "READ COMMITTED"): Promise<T> {
   const c = await pool.connect();
   try {
-    await c.query("BEGIN ISOLATION LEVEL " + (isolation || "READ COMMITTED"));
-    const r = await fn(c);
+    await c.query(`BEGIN ISOLATION LEVEL ${isolation}`);
+    const result = await fn(c);
     await c.query("COMMIT");
-    return r;
+    return result;
   } catch (e) {
-    try {
-      await c.query("ROLLBACK");
-    } catch (ignored) {}
+    await c.query("ROLLBACK").catch(() => undefined);
     throw e;
   } finally {
     c.release();
