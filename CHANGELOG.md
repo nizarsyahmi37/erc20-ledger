@@ -7,6 +7,7 @@ The format follows [Keep a Changelog](http://keepachangelog.com/) and the projec
 
 ### Added
 - @types/node and @types/mocha
+- @types/bn.js
 
 ### Changed
 - docker-compose file moved to the version 3 format and PostgreSQL 10 (9.5 remains the minimum supported version)
@@ -14,9 +15,11 @@ The format follows [Keep a Changelog](http://keepachangelog.com/) and the projec
 - Runtime baseline raised from Node 4.2 to Node 8.11 LTS (engines.node >= 8.11.0)
 - TypeScript 1.7.5 -> 2.9.2, compiling to ES2017 so async/await is native instead of a generator helper
 - mocha 2.3.4 -> 5.2.0
+- bn.js 4.6.1 -> 4.11.8
 
 ### Removed
 - Hand-written Node and mocha typings (typings/node-lite.d.ts, typings/mocha-lite.d.ts)
+- Hand-written typings/bn.d.ts
 
 ## [0.1.0] - 2016-02-04
 

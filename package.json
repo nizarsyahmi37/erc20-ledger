@@ -14,10 +14,11 @@
     "test": "npm run build && mocha dist/test"
   },
   "dependencies": {
-    "bn.js": "4.6.1",
+    "bn.js": "4.11.8",
     "pg": "4.4.3"
   },
   "devDependencies": {
+    "@types/bn.js": "4.11.1",
     "@types/mocha": "5.2.4",
     "@types/node": "10.5.1",
     "mocha": "5.2.0",
