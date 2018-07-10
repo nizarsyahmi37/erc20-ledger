@@ -24,6 +24,7 @@ The format follows [Keep a Changelog](http://keepachangelog.com/) and the projec
 - EventKind is a string-literal type and decodeTransfer returns DecodedEvent | null
 - JSON-RPC client parses endpoints with the WHATWG URL class and sends basic-auth credentials from it
 - ChainRpc states nullable headers and totalSupply explicitly; address padding uses padStart and backoff uses the ** operator
+- Block ingestion uses object spread, array spread and Array#every instead of manual loops and Object.assign
 
 ### Removed
 - Hand-written Node and mocha typings (typings/node-lite.d.ts, typings/mocha-lite.d.ts)
