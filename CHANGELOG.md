@@ -22,6 +22,8 @@ The format follows [Keep a Changelog](http://keepachangelog.com/) and the projec
 - Config loader uses template strings, array spread and the typed NodeJS.ProcessEnv
 - ingestToken is typed string | null
 - EventKind is a string-literal type and decodeTransfer returns DecodedEvent | null
+- JSON-RPC client parses endpoints with the WHATWG URL class and sends basic-auth credentials from it
+- ChainRpc states nullable headers and totalSupply explicitly; address padding uses padStart and backoff uses the ** operator
 
 ### Removed
 - Hand-written Node and mocha typings (typings/node-lite.d.ts, typings/mocha-lite.d.ts)
