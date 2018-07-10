@@ -21,11 +21,15 @@ The format follows [Keep a Changelog](http://keepachangelog.com/) and the projec
 - Entrypoints and tests create their pool with createPool()
 - Config loader uses template strings, array spread and the typed NodeJS.ProcessEnv
 - ingestToken is typed string | null
+- EventKind is a string-literal type and decodeTransfer returns DecodedEvent | null
 
 ### Removed
 - Hand-written Node and mocha typings (typings/node-lite.d.ts, typings/mocha-lite.d.ts)
 - Hand-written typings/bn.d.ts
 - Hand-written typings/pg.d.ts and the typings directory
+
+### Fixed
+- ERC-721 Transfer logs (same topic0, 4 topics) are documented as skipped now that the standard exists
 
 ## [0.1.0] - 2016-02-04
 
