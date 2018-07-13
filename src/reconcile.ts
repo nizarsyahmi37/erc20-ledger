@@ -1,4 +1,3 @@
-"use strict";
 import { getCursor } from "./apply";
 import { Pool } from "./db";
 import { ChainRpc } from "./rpc";
@@ -11,14 +10,15 @@ export interface ReconcileOptions {
   maxDiffs?: number;
 }
 
-/** status: "ok" | "drift" | "inconclusive" | "error" */
+export type ReconcileStatus = "ok" | "drift" | "inconclusive" | "error";
+
 export interface ReconcileResult {
   runId: number;
-  status: string;
-  blockNumber: number;
+  status: ReconcileStatus;
+  blockNumber: number | null;
   checked: number;
   mismatched: number;
-  detail?: string;
+  detail: string | null;
 }
 
 interface Diff {
@@ -29,7 +29,7 @@ interface Diff {
 }
 
 async function stillCanonical(rpc: ChainRpc, cur: { number: number; hash: string }): Promise<boolean> {
-  const h = (await rpc.getHeaders(cur.number, cur.number))[0];
+  const [h] = await rpc.getHeaders(cur.number, cur.number);
   return !!h && h.hash === cur.hash;
 }
 
@@ -48,25 +48,32 @@ async function stillCanonical(rpc: ChainRpc, cur: { number: number; hash: string
  * totalSupply check, not per-holder.
  */
 export async function reconcile(pool: Pool, rpc: ChainRpc, opts: ReconcileOptions): Promise<ReconcileResult> {
-  const networkId = opts.networkId;
+  const { networkId } = opts;
   const pageSize = opts.pageSize || 100;
   const maxDiffs = opts.maxDiffs || 1000;
   const run = await pool.query("INSERT INTO reconciliation_runs (network_id, status) VALUES ($1, 'error') RETURNING id", [networkId]);
   const runId = Number(run.rows[0].id);
 
-  const finish = async (status: string, blockNumber: number, checked: number, mismatched: number, detail: string, diffs?: Diff[]): Promise<ReconcileResult> => {
+  const finish = async (
+    status: ReconcileStatus,
+    blockNumber: number | null,
+    checked: number,
+    mismatched: number,
+    detail: string | null,
+    diffs: Diff[] = []
+  ): Promise<ReconcileResult> => {
     await pool.query(
       "UPDATE reconciliation_runs SET status = $2, block_number = $3, checked = $4, mismatched = $5, detail = $6, finished_at = now() WHERE id = $1",
       [runId, status, blockNumber, checked, mismatched, detail]
     );
-    if (diffs && diffs.length > 0) {
+    if (diffs.length > 0) {
       await pool.query(
-        "INSERT INTO reconciliation_diffs (run_id, token, holder, ours, onchain) " +
-          "SELECT $1, * FROM UNNEST($2::text[], $3::text[], $4::numeric[], $5::numeric[])",
-        [runId, diffs.map((d) => d.token), diffs.map((d) => d.holder), diffs.map((d) => d.ours), diffs.map((d) => d.onchain)]
+        `INSERT INTO reconciliation_diffs (run_id, token, holder, ours, onchain)
+         SELECT $1, * FROM UNNEST($2::text[], $3::text[], $4::numeric[], $5::numeric[])`,
+        [runId, diffs.map(d => d.token), diffs.map(d => d.holder), diffs.map(d => d.ours), diffs.map(d => d.onchain)]
       );
     }
-    return { runId: runId, status: status, blockNumber: blockNumber, checked: checked, mismatched: mismatched, detail: detail };
+    return { runId, status, blockNumber, checked, mismatched, detail };
   };
 
   const c = await pool.connect();
@@ -101,7 +108,7 @@ export async function reconcile(pool: Pool, rpc: ChainRpc, opts: ReconcileOption
         checked++;
         if (onSupply !== oursSupply) {
           const again = await rpc.totalSupply(token, cursor.number);
-          if (again !== oursSupply) record({ token: token, holder: "*supply*", ours: oursSupply, onchain: again === null ? onSupply : again });
+          if (again !== oursSupply) record({ token, holder: "*supply*", ours: oursSupply, onchain: again === null ? onSupply : again });
         }
       }
 
@@ -113,17 +120,17 @@ export async function reconcile(pool: Pool, rpc: ChainRpc, opts: ReconcileOption
           [networkId, token, after, pageSize]
         );
         if (page.rows.length === 0) break;
-        const holders: string[] = page.rows.map((r: any) => r.holder);
+        const holders: string[] = page.rows.map(r => r.holder);
         const onchain = await rpc.balancesOf(token, holders, cursor.number);
         const suspects: number[] = [];
-        page.rows.forEach((r: any, i: number) => {
+        page.rows.forEach((r, i) => {
           checked++;
           if (r.balance !== onchain[i]) suspects.push(i);
         });
         if (suspects.length > 0) {
-          const second = await rpc.balancesOf(token, suspects.map((i) => holders[i]), cursor.number);
+          const second = await rpc.balancesOf(token, suspects.map(i => holders[i]), cursor.number);
           suspects.forEach((i, j) => {
-            if (page.rows[i].balance !== second[j]) record({ token: token, holder: holders[i], ours: page.rows[i].balance, onchain: second[j] });
+            if (page.rows[i].balance !== second[j]) record({ token, holder: holders[i], ours: page.rows[i].balance, onchain: second[j] });
           });
         }
         after = holders[holders.length - 1];
@@ -136,9 +143,7 @@ export async function reconcile(pool: Pool, rpc: ChainRpc, opts: ReconcileOption
     }
     return await finish(mismatched > 0 ? "drift" : "ok", cursor.number, checked, mismatched, null, diffs);
   } catch (e) {
-    try {
-      await c.query("ROLLBACK");
-    } catch (ignored) {}
+    await c.query("ROLLBACK").catch(() => undefined);
     return await finish("error", null, 0, 0, e.message);
   } finally {
     c.release();

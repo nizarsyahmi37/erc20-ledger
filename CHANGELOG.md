@@ -29,6 +29,7 @@ The format follows [Keep a Changelog](http://keepachangelog.com/) and the projec
 - getCursor returns Cursor | null
 - Header presence is checked with a type guard; TickResult.cursor is number | null
 - Replace manual loops with find, includes and spread; known and just-stored block hashes share one set
+- ReconcileStatus is a string-literal union; blockNumber and detail are nullable and always present in results
 
 ### Removed
 - Hand-written Node and mocha typings (typings/node-lite.d.ts, typings/mocha-lite.d.ts)
