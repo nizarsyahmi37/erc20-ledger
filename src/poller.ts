@@ -1,4 +1,3 @@
-"use strict";
 import { applyThrough, getCursor, halt, rollbackTo } from "./apply";
 import { Pool } from "./db";
 import { decodeTransfer, DecodedEvent, RawLog } from "./decode";
@@ -35,16 +34,18 @@ export async function initNetworkState(pool: Pool, cfg: PollerConfig): Promise<v
 
 export interface TickResult {
   head: number;
-  cursor: number;
+  cursor: number | null;
   reorgRolledBack: number;
   ingested: number;
   apply: string;
 }
 
+const present = (h: Header | null): h is Header => h !== null;
+
 /** One pass: detect deep reorg -> ingest headers+logs up to head -> apply up to head - confirmations. */
 export async function tick(pool: Pool, rpc: ChainRpc, cfg: PollerConfig): Promise<TickResult> {
   const head = await rpc.getHeadNumber();
-  const out: TickResult = { head: head, cursor: null, reorgRolledBack: 0, ingested: 0, apply: "none" };
+  const out: TickResult = { head, cursor: null, reorgRolledBack: 0, ingested: 0, apply: "none" };
 
   out.reorgRolledBack = await handleDeepReorg(pool, rpc, cfg);
 
@@ -55,18 +56,17 @@ export async function tick(pool: Pool, rpc: ChainRpc, cfg: PollerConfig): Promis
   if (from > head) return out;
   const to = Math.min(head, from + cfg.maxBlocksPerTick - 1);
 
-  const headers = (await rpc.getHeaders(from, to)).filter((h) => h !== null);
+  const headers = (await rpc.getHeaders(from, to)).filter(present);
   if (headers.length === 0) return out;
 
   // Only fetch logs for blocks we do not already hold. Hash-keyed, so a re-orged height simply
   // yields a new hash and gets fetched; unchanged heights cost nothing.
   const known = await pool.query("SELECT hash FROM blocks WHERE network_id = $1 AND hash = ANY($2::text[])", [
     cfg.networkId,
-    headers.map((h) => h.hash)
+    headers.map(h => h.hash)
   ]);
-  const knownSet = new Set<string>(known.rows.map((r: any) => r.hash));
-  const unknown = headers.filter((h) => !knownSet.has(h.hash));
-  const usable = new Set<string>(knownSet); // hashes we hold, or have just stored
+  const usable = new Set<string>(known.rows.map(r => r.hash)); // hashes we hold, or have just stored
+  const unknown = headers.filter(h => !usable.has(h.hash));
   if (unknown.length > 0) {
     const lo = unknown[0].number;
     const hi = unknown[unknown.length - 1].number;
@@ -74,46 +74,36 @@ export async function tick(pool: Pool, rpc: ChainRpc, cfg: PollerConfig): Promis
     // A block is only stored if the node reported the SAME hash before and after the logs were read
     // (and each log carries that blockHash), so logs can never be filed under another fork's header.
     const logs = await rpc.getLogs(lo, hi, cfg.tokens);
-    const after = await rpc.getHeaders(lo, hi);
     const afterHash = new Map<number, string>();
-    after.forEach((h) => {
-      if (h) afterHash.set(h.number, h.hash);
-    });
-    const stable = unknown.filter((h) => afterHash.get(h.number) === h.hash);
+    for (const h of (await rpc.getHeaders(lo, hi)).filter(present)) afterHash.set(h.number, h.hash);
+    const stable = unknown.filter(h => afterHash.get(h.number) === h.hash);
 
     const logsByHash = new Map<string, RawLog[]>();
     for (const l of logs) {
       if (l.removed) throw new Error("node returned a removed log; refusing to guess");
-      if (cfg.tokens.indexOf(l.address.toLowerCase()) < 0) throw new Error("node returned a log from an untracked address");
+      if (!cfg.tokens.includes(l.address.toLowerCase())) throw new Error("node returned a log from an untracked address");
       const bh = l.blockHash.toLowerCase();
-      if (!logsByHash.has(bh)) logsByHash.set(bh, []);
-      logsByHash.get(bh).push(l);
+      logsByHash.set(bh, [...(logsByHash.get(bh) || []), l]);
     }
-    const bundles: BlockBundle[] = stable.map((h: Header) => {
+    const bundles: BlockBundle[] = stable.map(h => {
       const events: DecodedEvent[] = [];
       for (const l of logsByHash.get(h.hash) || []) {
         const d = decodeTransfer(l);
         if (d) events.push(d);
       }
-      return { networkId: cfg.networkId, number: h.number, hash: h.hash, parentHash: h.parentHash, events: events };
+      return { networkId: cfg.networkId, number: h.number, hash: h.hash, parentHash: h.parentHash, events };
     });
     await ingestBundles(pool, bundles);
-    bundles.forEach((b) => usable.add(b.hash));
+    for (const b of bundles) usable.add(b.hash);
     out.ingested = bundles.length;
   }
 
   // Apply as far as confirmation depth allows, using a header we just saw (and hold) as the trusted target.
   const safe = head - cfg.confirmations;
-  let target: Header = null;
-  for (let i = headers.length - 1; i >= 0; i--) {
-    if (headers[i].number <= safe && usable.has(headers[i].hash)) {
-      target = headers[i];
-      break;
-    }
-  }
+  const target = [...headers].reverse().find(h => h.number <= safe && usable.has(h.hash));
   if (target) {
     const r = await applyThrough(pool, cfg.networkId, target.hash);
-    out.apply = r.status === "applied" ? "applied " + r.from + ".." + r.to : r.status;
+    out.apply = r.status === "applied" ? `applied ${r.from}..${r.to}` : r.status;
     // "gap"/"unknown_target": a racing reorg gave us a header mix, or that block was skipped as unstable.
     // Harmless; the next tick re-fetches. "diverged": next tick's handleDeepReorg resolves it.
   }
@@ -130,10 +120,10 @@ export async function tick(pool: Pool, rpc: ChainRpc, cfg: PollerConfig): Promis
 export async function handleDeepReorg(pool: Pool, rpc: ChainRpc, cfg: PollerConfig): Promise<number> {
   const cursor = await getCursor(pool, cfg.networkId);
   if (!cursor) return 0;
-  const tip = (await rpc.getHeaders(cursor.number, cursor.number))[0];
+  const [tip] = await rpc.getHeaders(cursor.number, cursor.number);
   if (tip && tip.hash === cursor.hash) return 0;
   // A node that is merely behind (load-balanced, lagging) must not look like a reorg: never halt on null.
-  if (!tip) throw new Error("node has no block " + cursor.number + " but we applied it; node lagging? retrying");
+  if (!tip) throw new Error(`node has no block ${cursor.number} but we applied it; node lagging? retrying`);
 
   const lo = Math.max(cursor.number - cfg.maxReorgDepth, cfg.startBlock);
   const applied = await pool.query("SELECT number, hash FROM applied_blocks WHERE network_id = $1 AND number >= $2 ORDER BY number DESC", [
@@ -141,16 +131,15 @@ export async function handleDeepReorg(pool: Pool, rpc: ChainRpc, cfg: PollerConf
     lo
   ]);
   const theirs = await rpc.getHeaders(lo, cursor.number);
-  if (theirs.some((h) => h === null)) throw new Error("node is missing blocks inside the reorg window; retrying");
-  const nodeHash = new Map<number, string>();
-  theirs.forEach((h) => nodeHash.set(h.number, h.hash));
-  const ancestor = applied.rows.find((r: any) => nodeHash.get(Number(r.number)) === r.hash);
+  if (!theirs.every(present)) throw new Error("node is missing blocks inside the reorg window; retrying");
+  const nodeHash = new Map<number, string>(theirs.filter(present).map((h): [number, string] => [h.number, h.hash]));
+  const ancestor = applied.rows.find(r => nodeHash.get(Number(r.number)) === r.hash);
   if (!ancestor) {
-    const reason = "reorg deeper than MAX_REORG_DEPTH=" + cfg.maxReorgDepth + " below block " + cursor.number;
+    const reason = `reorg deeper than MAX_REORG_DEPTH=${cfg.maxReorgDepth} below block ${cursor.number}`;
     await halt(pool, cfg.networkId, reason);
     throw new Error(reason);
   }
   const n = await rollbackTo(pool, cfg.networkId, Number(ancestor.number));
-  console.warn("[reorg] rolled back " + n + " applied blocks to " + ancestor.number + " (node tip changed at " + cursor.number + ")");
+  console.warn(`[reorg] rolled back ${n} applied blocks to ${ancestor.number} (node tip changed at ${cursor.number})`);
   return n;
 }

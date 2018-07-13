@@ -27,6 +27,8 @@ The format follows [Keep a Changelog](http://keepachangelog.com/) and the projec
 - Block ingestion uses object spread, array spread and Array#every instead of manual loops and Object.assign
 - ApplyResult is a discriminated union on status, so callers get typed from/to and missingNumber/missingHash fields
 - getCursor returns Cursor | null
+- Header presence is checked with a type guard; TickResult.cursor is number | null
+- Replace manual loops with find, includes and spread; known and just-stored block hashes share one set
 
 ### Removed
 - Hand-written Node and mocha typings (typings/node-lite.d.ts, typings/mocha-lite.d.ts)
