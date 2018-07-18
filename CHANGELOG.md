@@ -30,6 +30,8 @@ The format follows [Keep a Changelog](http://keepachangelog.com/) and the projec
 - Header presence is checked with a type guard; TickResult.cursor is number | null
 - Replace manual loops with find, includes and spread; known and just-stored block hashes share one set
 - ReconcileStatus is a string-literal union; blockNumber and detail are nullable and always present in results
+- Request URLs are parsed with the URL class and oversized bodies destroy the request with req.destroy()
+- Health check runs its queries concurrently
 
 ### Removed
 - Hand-written Node and mocha typings (typings/node-lite.d.ts, typings/mocha-lite.d.ts)
@@ -38,6 +40,7 @@ The format follows [Keep a Changelog](http://keepachangelog.com/) and the projec
 
 ### Fixed
 - ERC-721 Transfer logs (same topic0, 4 topics) are documented as skipped now that the standard exists
+- Bearer token is compared with crypto.timingSafeEqual over SHA-256 digests: constant time and no length leak
 
 ## [0.1.0] - 2016-02-04
 
