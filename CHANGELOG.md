@@ -32,6 +32,8 @@ The format follows [Keep a Changelog](http://keepachangelog.com/) and the projec
 - ReconcileStatus is a string-literal union; blockNumber and detail are nullable and always present in results
 - Request URLs are parsed with the URL class and oversized bodies destroy the request with req.destroy()
 - Health check runs its queries concurrently
+- Migration runner uses util.promisify and String#endsWith
+- main, migrate and rebuild entrypoints set the exit code on error and always close the pool
 
 ### Removed
 - Hand-written Node and mocha typings (typings/node-lite.d.ts, typings/mocha-lite.d.ts)

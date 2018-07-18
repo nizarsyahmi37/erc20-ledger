@@ -1,4 +1,3 @@
-"use strict";
 import { createApi } from "./api";
 import { loadConfig } from "./config";
 import { createPool, LOCK_NS_LEADER } from "./db";
@@ -7,11 +6,7 @@ import { initNetworkState, tick } from "./poller";
 import { reconcile } from "./reconcile";
 import { JsonRpcClient } from "./rpc";
 
-function sleep(ms: number): Promise<void> {
-  return new Promise<void>((resolve) => {
-    setTimeout(resolve, ms);
-  });
-}
+const sleep = (ms: number) => new Promise<void>(resolve => setTimeout(resolve, ms));
 
 async function main(): Promise<void> {
   const cfg = loadConfig(process.env);
@@ -20,8 +15,8 @@ async function main(): Promise<void> {
   await initNetworkState(pool, cfg);
   const rpc = new JsonRpcClient(cfg.rpcUrl);
 
-  const api = createApi({ pool: pool, networkId: cfg.networkId, tokens: cfg.tokens, ingestToken: cfg.ingestToken });
-  api.listen(cfg.apiPort, () => console.log("api on :" + cfg.apiPort));
+  const api = createApi({ pool, networkId: cfg.networkId, tokens: cfg.tokens, ingestToken: cfg.ingestToken });
+  api.listen(cfg.apiPort, () => console.log(`api on :${cfg.apiPort}`));
 
   let stopping = false;
   const stop = () => {
@@ -47,7 +42,7 @@ async function main(): Promise<void> {
     try {
       const t = await tick(pool, rpc, cfg);
       behind = t.cursor !== null && t.head - t.cursor > cfg.confirmations + cfg.maxBlocksPerTick;
-      if (t.ingested > 0 || t.reorgRolledBack > 0) console.log("[tick] head=" + t.head + " cursor=" + t.cursor + " ingested=" + t.ingested + " " + t.apply);
+      if (t.ingested > 0 || t.reorgRolledBack > 0) console.log(`[tick] head=${t.head} cursor=${t.cursor} ingested=${t.ingested} ${t.apply}`);
     } catch (e) {
       console.error("[tick] failed:", e.message);
       if (/halted|MAX_REORG_DEPTH/.test(e.message)) {
@@ -61,17 +56,17 @@ async function main(): Promise<void> {
       lastReconcile = Date.now();
       const r = await reconcile(pool, rpc, { networkId: cfg.networkId });
       const log = r.status === "ok" ? console.log : console.error;
-      log("[reconcile] " + r.status + " block=" + r.blockNumber + " checked=" + r.checked + " mismatched=" + r.mismatched + " " + (r.detail || ""));
+      log(`[reconcile] ${r.status} block=${r.blockNumber} checked=${r.checked} mismatched=${r.mismatched} ${r.detail || ""}`);
     }
     if (!behind) await sleep(cfg.pollIntervalMs);
   }
   api.close();
   leader.release();
-  pool.end();
+  await pool.end();
   process.exit(fatal ? 1 : 0);
 }
 
-main().catch((e: any) => {
+main().catch(e => {
   console.error(e);
   process.exit(1);
 });
