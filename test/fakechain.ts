@@ -1,5 +1,4 @@
-"use strict";
-import crypto = require("crypto");
+import * as crypto from "crypto";
 import { RawLog, TRANSFER_TOPIC, ZERO_ADDRESS } from "../src/decode";
 import { ChainRpc, Header } from "../src/rpc";
 
@@ -14,70 +13,66 @@ export interface FakeBlock extends Header {
   xfers: Xfer[];
 }
 
-function h32(s: string): string {
-  return "0x" + crypto.createHash("sha256").update(s).digest("hex");
-}
+const h32 = (s: string) => "0x" + crypto.createHash("sha256").update(s).digest("hex");
 
-function pad(s: string, n: number): string {
-  return new Array(n + 1 - s.length).join("0") + s;
-}
-
-export function addr(n: number): string {
-  return "0x" + pad(n.toString(16), 40);
-}
+export const addr = (n: number) => "0x" + n.toString(16).padStart(40, "0");
 
 /** In-memory chain supporting forks. `canonical` is what the "node" currently reports. */
 export class FakeChain implements ChainRpc {
   blocks = new Map<string, FakeBlock>();
   canonical: string[] = []; // index = block number
   failBalanceFor = new Set<string>();
-  onGetLogs: () => void = null; // test hook: runs just before logs are read (to simulate a reorg mid-fetch)
+  onGetLogs: (() => void) | null = null; // test hook: runs just before logs are read (simulates a reorg mid-fetch)
   private seq = 0;
 
-  constructor(public tokens: string[]) {
-    const g: FakeBlock = { number: 0, hash: h32("genesis"), parentHash: h32("none"), xfers: [] };
-    this.blocks.set(g.hash, g);
-    this.canonical = [g.hash];
+  constructor() {
+    const genesis: FakeBlock = { number: 0, hash: h32("genesis"), parentHash: h32("none"), xfers: [] };
+    this.blocks.set(genesis.hash, genesis);
+    this.canonical = [genesis.hash];
+  }
+
+  private block(hash: string): FakeBlock {
+    const b = this.blocks.get(hash);
+    if (!b) throw new Error(`unknown block ${hash}`);
+    return b;
   }
 
   /** Create a block on top of `parent` (default: canonical tip). Does not change the canonical chain. */
-  mk(xfers: Xfer[], parent?: string): FakeBlock {
-    const p = this.blocks.get(parent || this.canonical[this.canonical.length - 1]);
-    const b: FakeBlock = { number: p.number + 1, hash: h32("b" + this.seq++), parentHash: p.hash, xfers: xfers || [] };
+  mk(xfers: Xfer[], parent: string = this.canonical[this.canonical.length - 1]): FakeBlock {
+    const p = this.block(parent);
+    const b: FakeBlock = { number: p.number + 1, hash: h32(`b${this.seq++}`), parentHash: p.hash, xfers };
     this.blocks.set(b.hash, b);
     return b;
   }
 
   /** Extend the canonical chain, one block per entry. */
   mine(xfersPerBlock: Xfer[][]): FakeBlock[] {
-    const out: FakeBlock[] = [];
-    for (const x of xfersPerBlock) {
+    return xfersPerBlock.map(x => {
       const b = this.mk(x);
       this.canonical[b.number] = b.hash;
-      out.push(b);
-    }
-    return out;
+      return b;
+    });
   }
 
   /** Make `hash` the canonical tip (and its ancestors the canonical chain). */
   setTip(hash: string): void {
-    let b = this.blocks.get(hash);
+    let b = this.block(hash);
     this.canonical.length = b.number + 1;
     for (;;) {
       this.canonical[b.number] = b.hash;
       if (b.number === 0) break;
-      b = this.blocks.get(b.parentHash);
+      b = this.block(b.parentHash);
     }
   }
 
   logsOf(b: FakeBlock): RawLog[] {
     return b.xfers.map((x, i) => ({
       address: x.token,
-      topics: [TRANSFER_TOPIC, "0x" + pad(x.from.slice(2), 64), "0x" + pad(x.to.slice(2), 64)],
-      data: "0x" + pad(x.amount.toString(16), 64),
+      topics: [TRANSFER_TOPIC, "0x" + x.from.slice(2).padStart(64, "0"), "0x" + x.to.slice(2).padStart(64, "0")],
+      data: "0x" + x.amount.toString(16).padStart(64, "0"),
       blockHash: b.hash,
       blockNumber: "0x" + b.number.toString(16),
-      transactionHash: h32("tx" + b.hash + i),
+      transactionHash: h32(`tx${b.hash}${i}`),
       logIndex: "0x" + i.toString(16)
     }));
   }
@@ -86,9 +81,9 @@ export class FakeChain implements ChainRpc {
     return this.canonical.length - 1;
   }
 
-  async getHeaders(from: number, to: number): Promise<Header[]> {
-    const out: Header[] = [];
-    for (let n = from; n <= to; n++) out.push(this.canonical[n] ? this.blocks.get(this.canonical[n]) : null);
+  async getHeaders(from: number, to: number): Promise<(Header | null)[]> {
+    const out: (Header | null)[] = [];
+    for (let n = from; n <= to; n++) out.push(this.canonical[n] ? this.block(this.canonical[n]) : null);
     return out;
   }
 
@@ -96,7 +91,7 @@ export class FakeChain implements ChainRpc {
     if (this.onGetLogs) this.onGetLogs();
     const out: RawLog[] = [];
     for (let n = from; n <= to && n < this.canonical.length; n++) {
-      for (const l of this.logsOf(this.blocks.get(this.canonical[n]))) if (tokens.indexOf(l.address) >= 0) out.push(l);
+      out.push(...this.logsOf(this.block(this.canonical[n])).filter(l => tokens.includes(l.address)));
     }
     return out;
   }
@@ -105,7 +100,7 @@ export class FakeChain implements ChainRpc {
     const bal = new Map<string, number>();
     let supply = 0;
     for (let n = 0; n <= block; n++) {
-      for (const x of this.blocks.get(this.canonical[n]).xfers) {
+      for (const x of this.block(this.canonical[n]).xfers) {
         if (x.token !== token) continue;
         if (x.from === ZERO_ADDRESS) supply += x.amount;
         else bal.set(x.from, (bal.get(x.from) || 0) - x.amount);
@@ -113,16 +108,16 @@ export class FakeChain implements ChainRpc {
         else bal.set(x.to, (bal.get(x.to) || 0) + x.amount);
       }
     }
-    return { bal: bal, supply: supply };
+    return { bal, supply };
   }
 
   async balancesOf(token: string, holders: string[], block: number): Promise<string[]> {
     if (this.failBalanceFor.has(token)) throw new Error("rpc down");
-    const s = this.stateAt(token, block);
-    return holders.map((h) => String(s.bal.get(h) || 0));
+    const { bal } = this.stateAt(token, block);
+    return holders.map(h => String(bal.get(h) || 0));
   }
 
-  async totalSupply(token: string, block: number): Promise<string> {
+  async totalSupply(token: string, block: number): Promise<string | null> {
     return String(this.stateAt(token, block).supply);
   }
 }

@@ -9,6 +9,7 @@ The format follows [Keep a Changelog](http://keepachangelog.com/) and the projec
 - @types/node and @types/mocha
 - @types/bn.js
 - @types/pg
+- Decoder test asserting that ERC-721 style Transfer logs are skipped
 
 ### Changed
 - docker-compose file moved to the version 3 format and PostgreSQL 10 (9.5 remains the minimum supported version)
@@ -34,6 +35,7 @@ The format follows [Keep a Changelog](http://keepachangelog.com/) and the projec
 - Health check runs its queries concurrently
 - Migration runner uses util.promisify and String#endsWith
 - main, migrate and rebuild entrypoints set the exit code on error and always close the pool
+- Tests and fake chain use destructuring, object spread, padStart and strict null-safe types
 
 ### Removed
 - Hand-written Node and mocha typings (typings/node-lite.d.ts, typings/mocha-lite.d.ts)
