@@ -3,19 +3,13 @@
     "target": "es2017",
     "module": "commonjs",
     "moduleResolution": "node",
-    "lib": [
-      "es2017"
-    ],
-    "types": [
-      "node",
-      "mocha"
-    ],
-    "noImplicitAny": true,
+    "lib": ["es2017"],
+    "types": ["node", "mocha"],
+    "strict": true,
+    "noUnusedLocals": true,
+    "noImplicitReturns": true,
     "outDir": "dist",
     "rootDir": "."
   },
-  "include": [
-    "src",
-    "test"
-  ]
+  "include": ["src", "test"]
 }
