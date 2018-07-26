@@ -1,15 +1,16 @@
 # Changelog
 
 All notable changes to this project are documented in this file.
-The format follows [Keep a Changelog](http://keepachangelog.com/) and the project adheres to [Semantic Versioning](http://semver.org/).
+The format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.2.0] - 2018-07-26
 
 ### Added
 - @types/node and @types/mocha
 - @types/bn.js
 - @types/pg
 - Decoder test asserting that ERC-721 style Transfer logs are skipped
+- package-lock.json (lockfile v1); install with npm ci
 
 ### Changed
 - docker-compose file moved to the version 3 format and PostgreSQL 10 (9.5 remains the minimum supported version)
@@ -38,6 +39,8 @@ The format follows [Keep a Changelog](http://keepachangelog.com/) and the projec
 - Tests and fake chain use destructuring, object spread, padStart and strict null-safe types
 - Compiler runs in strict mode with noUnusedLocals and noImplicitReturns
 - README compatibility table, quick start (npm ci, PostgreSQL 10) and ERC-721 notes updated for Node 8, TypeScript 2.9 and pg 7
+- Version bumped to 0.2.0
+- Changelog links updated to Keep a Changelog 1.0.0 and Semantic Versioning 2.0.0
 
 ### Removed
 - Hand-written Node and mocha typings (typings/node-lite.d.ts, typings/mocha-lite.d.ts)
