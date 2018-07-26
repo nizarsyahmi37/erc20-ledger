@@ -37,6 +37,7 @@ The format follows [Keep a Changelog](http://keepachangelog.com/) and the projec
 - main, migrate and rebuild entrypoints set the exit code on error and always close the pool
 - Tests and fake chain use destructuring, object spread, padStart and strict null-safe types
 - Compiler runs in strict mode with noUnusedLocals and noImplicitReturns
+- README compatibility table, quick start (npm ci, PostgreSQL 10) and ERC-721 notes updated for Node 8, TypeScript 2.9 and pg 7
 
 ### Removed
 - Hand-written Node and mocha typings (typings/node-lite.d.ts, typings/mocha-lite.d.ts)

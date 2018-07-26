@@ -4,12 +4,12 @@ Indexes ERC-20 (EIP-20) `Transfer` events, including mints and burns, into Postg
 balances that stay correct under duplicates, out-of-order delivery and chain reorgs, and continuously
 reconciles those balances against the chain.
 
-TypeScript 1.7 compiled to ES6, Node.js >= 4.2 (LTS), PostgreSQL >= 9.5, a geth JSON-RPC endpoint.
+TypeScript 2.9 compiled to ES2017, Node.js >= 8.11 (LTS), PostgreSQL >= 9.5 (developed against 10), a geth or Parity JSON-RPC endpoint.
 
 ```
-docker-compose up -d                 # postgres 9.5 on :5433
+docker-compose up -d                 # postgres 10 on :5433
 cp .env.example .env                 # set RPC_URL, TOKENS, START_BLOCK, then export the variables
-npm install && npm run build
+npm ci && npm run build
 npm run migrate
 npm start                            # poller + API + periodic reconciliation
 TEST_DATABASE_URL=postgres://... npm test
@@ -19,22 +19,24 @@ API: `GET /healthz`, `GET /balances/:token/:holder`, `POST /ingest` (optional, b
 
 ## Compatibility baseline
 
-Everything here was chosen to exist in January 2016.
+Everything here was chosen to exist in July 2018.
 
 | Piece | Version | Notes |
 |---|---|---|
-| Node.js | 4.2 LTS | ES6 subset only: no destructuring, default/rest params, spread, `async` (compiled), `padStart`, `Array#includes`, `crypto.timingSafeEqual` |
-| TypeScript | 1.7.5 | `async`/`await` needs `--target es6`; no `strict`, no string-literal or discriminated unions, no `!`, no object spread |
-| PostgreSQL | 9.5 | `INSERT ... ON CONFLICT` is the idempotency primitive; multi-array `UNNEST`, recursive CTEs |
-| pg (node-postgres) | 4.4.3 | callback API wrapped in Promises (`src/db.ts`); no `Pool` class yet |
-| bn.js | 4.6.1 | hex -> decimal for uint256; amounts are never JS numbers |
-| mocha | 2.3.4 | plus Node's `assert` |
-| JSON-RPC | geth 1.3 | `eth_getBlockByNumber`, `eth_getLogs` (range), `eth_call` at a block, batch requests |
+| Node.js | 8.11 LTS ("Carbon") | native `async`/`await`, destructuring, object spread, `util.promisify`, `crypto.timingSafeEqual`; no `assert.rejects` (Node 10), no global `URL` (imported from `url`) |
+| TypeScript | 2.9.2 | `strict` mode, string-literal types and discriminated unions; no `bigint` (TS 3.2), no `unknown` (TS 3.0) |
+| PostgreSQL | 10 (>= 9.5) | `INSERT ... ON CONFLICT` is the idempotency primitive; multi-array `UNNEST`, recursive CTEs |
+| pg (node-postgres) | 7.4.3 | built-in `Pool` with Promises |
+| bn.js | 4.11.8 | hex -> decimal for uint256; amounts are never JS numbers |
+| mocha | 5.2.0 | plus Node's `assert` |
+| `@types/*` | node 10.5, pg 7.4, mocha 5.2, bn.js 4.11 | replace the hand-written declarations used before |
+| JSON-RPC | geth 1.8 / Parity 1.11 | `eth_getBlockByNumber`, `eth_getLogs` (range), `eth_call` at a block, batch requests |
+| Lockfile | npm 5/6 `package-lock.json` (v1) | install with `npm ci` |
 
-Consequences worth knowing: there is no `eth_getLogs` `blockHash` filter and no chain id (those arrive
-later), so the service keys everything by **network id** and gets fork-consistent logs with a
-header/log/header "sandwich" (see Reorgs). Type declarations for Node, pg and bn.js are hand-written and
-minimal in `typings/`.
+Consequences worth knowing: the `eth_getLogs` `blockHash` filter (EIP-234) is still a draft and not
+supported by every client, so the service does not rely on it and instead gets fork-consistent logs with a
+header/log/header "sandwich" (see Reorgs). Rows are keyed by **network id** (the `net_version` value), not
+by EIP-155 chain id, so a node does not need to report one.
 
 ## Design in one page
 
@@ -128,8 +130,8 @@ The poller re-fetches from `cursor+1` on every tick, so it self-heals when the s
 * **Non-standard tokens:** the model is "balance = sum of Transfer amounts". Fee-on-transfer, rebasing,
   elastic-supply, or tokens that mint/burn without emitting `Transfer` will drift. Reconciliation will
   report this as `drift`; it is a property of the token, not a bug to retry. Exclude such tokens.
-  Transfer-shaped logs that are not ERC-20 (not exactly 3 topics and a 32-byte data word) are skipped
-  rather than misparsed. Tokens that emit a *non-Transfer* mint event only are not supported.
+  ERC-721 `Transfer` shares topic0 with ERC-20 but has 4 topics and no data word; it (and anything else
+  that is not exactly 3 topics plus a 32-byte value) is skipped rather than misparsed. Tokens that emit a *non-Transfer* mint event only are not supported.
 
 ### Process / database
 
@@ -188,8 +190,7 @@ enumerated on-chain; it shows up as a `*supply*` mismatch instead. Monitor `stat
 
 ```
 migrations/001_init.sql   schema (hash-keyed blocks/events, applied_blocks, balances, reconciliation_*)
-typings/                  minimal ambient declarations: Node 4 APIs, pg 4.x, bn.js, mocha
-src/db.ts                 Promise wrapper over pg 4.x's global pool; tx() helper; lock namespaces
+src/db.ts                 pg Pool setup, tx() helper, lock namespaces
 src/decode.ts             Transfer -> mint|burn|transfer; uint256 as decimal string
 src/ingest.ts             atomic, idempotent, order-independent block persistence
 src/apply.ts              parent-walk, apply, rollback, rebuild, halt
