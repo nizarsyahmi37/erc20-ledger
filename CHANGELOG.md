@@ -10,6 +10,10 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and 
 
 ### Changed
 - docker-compose file uses format 3.8 and PostgreSQL 13 (9.5 remains the minimum supported version)
+- Runtime baseline raised from Node 8.11 to Node 14.16 LTS (engines.node >= 14.16.0)
+- TypeScript 2.9.2 -> 4.2.2, compiling to ES2020 so optional chaining, nullish coalescing and BigInt are native
+- mocha 5.2.0 -> 8.3.0, @types/node 10 -> 14, @types/mocha 5 -> 8
+- tsconfig adds esModuleInterop, skipLibCheck and forceConsistentCasingInFileNames
 
 ## [0.2.0] - 2018-07-26
 

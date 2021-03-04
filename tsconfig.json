@@ -1,15 +1,26 @@
 {
   "compilerOptions": {
-    "target": "es2017",
+    "target": "es2020",
     "module": "commonjs",
     "moduleResolution": "node",
-    "lib": ["es2017"],
-    "types": ["node", "mocha"],
+    "lib": [
+      "es2020"
+    ],
+    "types": [
+      "node",
+      "mocha"
+    ],
     "strict": true,
     "noUnusedLocals": true,
     "noImplicitReturns": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
     "outDir": "dist",
     "rootDir": "."
   },
-  "include": ["src", "test"]
+  "include": [
+    "src",
+    "test"
+  ]
 }
