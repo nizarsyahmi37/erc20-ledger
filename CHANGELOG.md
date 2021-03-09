@@ -14,6 +14,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and 
 - TypeScript 2.9.2 -> 4.2.2, compiling to ES2020 so optional chaining, nullish coalescing and BigInt are native
 - mocha 5.2.0 -> 8.3.0, @types/node 10 -> 14, @types/mocha 5 -> 8
 - tsconfig adds esModuleInterop, skipLibCheck and forceConsistentCasingInFileNames
+- pg 7.4.3 -> 8.5.1 (SCRAM-SHA-256 authentication, no connection workarounds needed on current Node)
+- @types/pg 7.4 -> 7.14
 
 ## [0.2.0] - 2018-07-26
 
