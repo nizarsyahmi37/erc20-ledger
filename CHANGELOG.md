@@ -17,6 +17,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and 
 - pg 7.4.3 -> 8.5.1 (SCRAM-SHA-256 authentication, no connection workarounds needed on current Node)
 - @types/pg 7.4 -> 7.14
 - uint256 values are decoded from hex to exact decimal strings with native BigInt (log data and eth_call results)
+- Config loader uses numeric separators for millisecond defaults and treats an empty variable as unset in one check
 
 ### Removed
 - bn.js and @types/bn.js dependencies

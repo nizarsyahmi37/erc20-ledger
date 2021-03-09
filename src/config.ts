@@ -21,7 +21,7 @@ function req(env: NodeJS.ProcessEnv, key: string): string {
 
 function int(env: NodeJS.ProcessEnv, key: string, dflt: number, min: number): number {
   const raw = env[key];
-  if (raw === undefined || raw === "") return dflt;
+  if (!raw) return dflt;
   const n = Number(raw);
   if (!Number.isInteger(n) || n < min) throw new Error(`${key} must be an integer >= ${min}`);
   return n;
@@ -42,9 +42,9 @@ export function loadConfig(env: NodeJS.ProcessEnv): Config {
     startBlock: int(env, "START_BLOCK", 0, 0),
     confirmations: int(env, "CONFIRMATIONS", 12, 0),
     maxReorgDepth: int(env, "MAX_REORG_DEPTH", 256, 1),
-    pollIntervalMs: int(env, "POLL_INTERVAL_MS", 4000, 100),
+    pollIntervalMs: int(env, "POLL_INTERVAL_MS", 4_000, 100),
     maxBlocksPerTick: int(env, "MAX_BLOCKS_PER_TICK", 200, 1),
-    reconcileIntervalMs: int(env, "RECONCILE_INTERVAL_MS", 900000, 0),
+    reconcileIntervalMs: int(env, "RECONCILE_INTERVAL_MS", 900_000, 0),
     apiPort: int(env, "API_PORT", 8080, 1),
     ingestToken: env.INGEST_TOKEN || null
   };
