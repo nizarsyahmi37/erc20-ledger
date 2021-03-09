@@ -16,6 +16,10 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and 
 - tsconfig adds esModuleInterop, skipLibCheck and forceConsistentCasingInFileNames
 - pg 7.4.3 -> 8.5.1 (SCRAM-SHA-256 authentication, no connection workarounds needed on current Node)
 - @types/pg 7.4 -> 7.14
+- uint256 values are decoded from hex to exact decimal strings with native BigInt (log data and eth_call results)
+
+### Removed
+- bn.js and @types/bn.js dependencies
 
 ## [0.2.0] - 2018-07-26
 

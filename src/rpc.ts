@@ -1,7 +1,6 @@
 import * as http from "http";
 import * as https from "https";
 import { URL } from "url";
-import BN = require("bn.js");
 import { RawLog, TRANSFER_TOPIC } from "./decode";
 
 export interface Header {
@@ -34,7 +33,7 @@ const sleep = (ms: number) => new Promise<void>(resolve => setTimeout(resolve, m
 
 function parseUint(r: string): string {
   if (!/^0x[0-9a-fA-F]{64}$/.test(r)) throw new Error(`unexpected eth_call return: ${r}`);
-  return new BN(r.slice(2), 16).toString(10);
+  return BigInt(r).toString();
 }
 
 function httpPost(target: string, payload: string, timeoutMs: number): Promise<string> {

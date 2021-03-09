@@ -1,5 +1,3 @@
-import BN = require("bn.js");
-
 export const TRANSFER_TOPIC = "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef";
 export const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
 
@@ -51,6 +49,6 @@ export function decodeTransfer(log: RawLog): DecodedEvent | null {
     kind,
     from,
     to,
-    amount: new BN(log.data.slice(2), 16).toString(10)
+    amount: BigInt(log.data).toString()
   };
 }
