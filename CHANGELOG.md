@@ -21,6 +21,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and 
 - tx() accepts an Isolation union (READ COMMITTED, REPEATABLE READ, SERIALIZABLE) instead of an arbitrary string
 - JSON-RPC requests use the http timeout option and req.destroy() instead of the deprecated req.abort()
 - Backoff sleep is util.promisify(setTimeout); status and error handling use ?. and ??
+- Block ingestion builds event rows with flatMap instead of reduce and concat
 
 ### Removed
 - bn.js and @types/bn.js dependencies

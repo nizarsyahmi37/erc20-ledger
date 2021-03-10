@@ -80,7 +80,7 @@ export async function ingestBundles(pool: Pool, bundles: BlockBundle[]): Promise
       }
     }
 
-    const rows = list.filter(b => fresh.has(b.hash)).reduce((acc, b) => acc.concat(b.events.map(e => ({ b, e }))), [] as { b: BlockBundle; e: DecodedEvent }[]);
+    const rows = list.filter(b => fresh.has(b.hash)).flatMap(b => b.events.map(e => ({ b, e })));
     let eventsNew = 0;
     if (rows.length > 0) {
       const r = await c.query(
