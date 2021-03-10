@@ -1,6 +1,7 @@
 import * as http from "http";
 import * as https from "https";
 import { URL } from "url";
+import { promisify } from "util";
 import { RawLog, TRANSFER_TOPIC } from "./decode";
 
 export interface Header {
@@ -29,7 +30,7 @@ export class RpcError extends Error {
 }
 
 const hex = (n: number) => "0x" + n.toString(16);
-const sleep = (ms: number) => new Promise<void>(resolve => setTimeout(resolve, ms));
+const sleep = promisify(setTimeout);
 
 function parseUint(r: string): string {
   if (!/^0x[0-9a-fA-F]{64}$/.test(r)) throw new Error(`unexpected eth_call return: ${r}`);
@@ -47,19 +48,20 @@ function httpPost(target: string, payload: string, timeoutMs: number): Promise<s
         path: u.pathname + u.search,
         auth: u.username ? `${decodeURIComponent(u.username)}:${decodeURIComponent(u.password)}` : undefined,
         method: "POST",
+        timeout: timeoutMs,
         headers: { "Content-Type": "application/json", "Content-Length": Buffer.byteLength(payload) }
       },
       res => {
         const chunks: Buffer[] = [];
         res.on("data", (c: Buffer) => chunks.push(c));
         res.on("end", () => {
-          const status = res.statusCode || 0;
+          const status = res.statusCode ?? 0;
           if (status < 200 || status >= 300) reject(new Error(`HTTP ${status}`));
           else resolve(Buffer.concat(chunks).toString("utf8"));
         });
       }
     );
-    req.setTimeout(timeoutMs, () => req.abort());
+    req.on("timeout", () => req.destroy(new Error(`timeout after ${timeoutMs}ms`)));
     req.on("error", reject);
     req.end(payload);
   });
@@ -72,7 +74,7 @@ interface Call {
 
 export class JsonRpcClient implements ChainRpc {
   private nextId = 1;
-  private readonly timeoutMs = 15000;
+  private readonly timeoutMs = 15_000;
   private readonly retries = 4;
   private readonly batchSize = 50;
 
@@ -85,10 +87,10 @@ export class JsonRpcClient implements ChainRpc {
         return JSON.parse(await httpPost(this.url, JSON.stringify(body), this.timeoutMs));
       } catch (e) {
         lastErr = e;
-        await sleep(Math.min(200 * 2 ** attempt, 5000) + Math.random() * 100);
+        await sleep(Math.min(200 * 2 ** attempt, 5_000) + Math.random() * 100);
       }
     }
-    throw new Error(`rpc transport failed after retries: ${lastErr && lastErr.message}`);
+    throw new Error(`rpc transport failed after retries: ${lastErr?.message}`);
   }
 
   /** JSON-RPC 2.0 batch; results come back in request order. */
