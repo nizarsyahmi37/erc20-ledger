@@ -18,6 +18,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and 
 - @types/pg 7.4 -> 7.14
 - uint256 values are decoded from hex to exact decimal strings with native BigInt (log data and eth_call results)
 - Config loader uses numeric separators for millisecond defaults and treats an empty variable as unset in one check
+- tx() accepts an Isolation union (READ COMMITTED, REPEATABLE READ, SERIALIZABLE) instead of an arbitrary string
 
 ### Removed
 - bn.js and @types/bn.js dependencies

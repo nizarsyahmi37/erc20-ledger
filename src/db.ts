@@ -20,7 +20,9 @@ export function createPool(connectionString: string, max = 10): Pool {
   return pool;
 }
 
-export async function tx<T>(pool: Pool, fn: (c: Conn) => Promise<T>, isolation = "READ COMMITTED"): Promise<T> {
+export type Isolation = "READ COMMITTED" | "REPEATABLE READ" | "SERIALIZABLE";
+
+export async function tx<T>(pool: Pool, fn: (c: Conn) => Promise<T>, isolation: Isolation = "READ COMMITTED"): Promise<T> {
   const c = await pool.connect();
   try {
     await c.query(`BEGIN ISOLATION LEVEL ${isolation}`);
