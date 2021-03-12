@@ -64,11 +64,11 @@ async function health(d: ApiDeps): Promise<object> {
     )
   ]);
   return {
-    halted: st.rows[0] ? st.rows[0].halted : null,
-    haltReason: st.rows[0] ? st.rows[0].halt_reason : null,
-    appliedBlock: cursor ? cursor.number : null,
+    halted: st.rows[0]?.halted ?? null,
+    haltReason: st.rows[0]?.halt_reason ?? null,
+    appliedBlock: cursor?.number ?? null,
     latestIngestedBlock: latest.rows[0].n === null ? null : Number(latest.rows[0].n),
-    lastReconciliation: rec.rows[0] || null
+    lastReconciliation: rec.rows[0] ?? null
   };
 }
 
@@ -83,9 +83,9 @@ async function balance(d: ApiDeps, token: string, holder: string): Promise<objec
     return {
       token,
       holder,
-      balance: r.rows[0] ? r.rows[0].balance : "0",
-      asOfBlock: cursor ? cursor.number : null,
-      asOfHash: cursor ? cursor.hash : null,
+      balance: r.rows[0]?.balance ?? "0",
+      asOfBlock: cursor?.number ?? null,
+      asOfHash: cursor?.hash ?? null,
       confirmed: true
     };
   } finally {
@@ -140,6 +140,5 @@ function readBody(req: http.IncomingMessage): Promise<string> {
 }
 
 function send(res: http.ServerResponse, status: number, data: object): void {
-  res.writeHead(status, { "Content-Type": "application/json" });
-  res.end(JSON.stringify(data));
+  res.writeHead(status, { "Content-Type": "application/json" }).end(JSON.stringify(data));
 }
