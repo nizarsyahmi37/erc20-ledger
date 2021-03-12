@@ -23,6 +23,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and 
 - Backoff sleep is util.promisify(setTimeout); status and error handling use ?. and ??
 - Block ingestion builds event rows with flatMap instead of reduce and concat
 - Poller derives bundle events with flatMap and uses ?. and ?? for cursors and log grouping, dropping a manual loop
+- Reconciliation uses ?? for page size, diff cap, missing supply rows and re-queried supply values
 
 ### Removed
 - bn.js and @types/bn.js dependencies

@@ -49,8 +49,8 @@ async function stillCanonical(rpc: ChainRpc, cur: { number: number; hash: string
  */
 export async function reconcile(pool: Pool, rpc: ChainRpc, opts: ReconcileOptions): Promise<ReconcileResult> {
   const { networkId } = opts;
-  const pageSize = opts.pageSize || 100;
-  const maxDiffs = opts.maxDiffs || 1000;
+  const pageSize = opts.pageSize ?? 100;
+  const maxDiffs = opts.maxDiffs ?? 1000;
   const run = await pool.query("INSERT INTO reconciliation_runs (network_id, status) VALUES ($1, 'error') RETURNING id", [networkId]);
   const runId = Number(run.rows[0].id);
 
@@ -102,13 +102,13 @@ export async function reconcile(pool: Pool, rpc: ChainRpc, opts: ReconcileOption
 
     for (const token of tokens) {
       const supplyRow = await c.query("SELECT supply FROM token_supply WHERE network_id = $1 AND token = $2", [networkId, token]);
-      const oursSupply: string = supplyRow.rows[0] ? supplyRow.rows[0].supply : "0";
+      const oursSupply: string = supplyRow.rows[0]?.supply ?? "0";
       const onSupply = await rpc.totalSupply(token, cursor.number);
       if (onSupply !== null) {
         checked++;
         if (onSupply !== oursSupply) {
           const again = await rpc.totalSupply(token, cursor.number);
-          if (again !== oursSupply) record({ token, holder: "*supply*", ours: oursSupply, onchain: again === null ? onSupply : again });
+          if (again !== oursSupply) record({ token, holder: "*supply*", ours: oursSupply, onchain: again ?? onSupply });
         }
       }
 
