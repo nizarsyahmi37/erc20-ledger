@@ -1,6 +1,6 @@
 import { applyThrough, getCursor, halt, rollbackTo } from "./apply";
 import { Pool } from "./db";
-import { decodeTransfer, DecodedEvent, RawLog } from "./decode";
+import { decodeTransfer, RawLog } from "./decode";
 import { BlockBundle, ingestBundles } from "./ingest";
 import { ChainRpc, Header } from "./rpc";
 
@@ -50,8 +50,8 @@ export async function tick(pool: Pool, rpc: ChainRpc, cfg: PollerConfig): Promis
   out.reorgRolledBack = await handleDeepReorg(pool, rpc, cfg);
 
   const cursor = await getCursor(pool, cfg.networkId);
-  const base = cursor ? cursor.number : cfg.startBlock - 1;
-  out.cursor = cursor ? cursor.number : null;
+  const base = cursor?.number ?? cfg.startBlock - 1;
+  out.cursor = cursor?.number ?? null;
   const from = base + 1;
   if (from > head) return out;
   const to = Math.min(head, from + cfg.maxBlocksPerTick - 1);
@@ -83,16 +83,15 @@ export async function tick(pool: Pool, rpc: ChainRpc, cfg: PollerConfig): Promis
       if (l.removed) throw new Error("node returned a removed log; refusing to guess");
       if (!cfg.tokens.includes(l.address.toLowerCase())) throw new Error("node returned a log from an untracked address");
       const bh = l.blockHash.toLowerCase();
-      logsByHash.set(bh, [...(logsByHash.get(bh) || []), l]);
+      logsByHash.set(bh, [...(logsByHash.get(bh) ?? []), l]);
     }
-    const bundles: BlockBundle[] = stable.map(h => {
-      const events: DecodedEvent[] = [];
-      for (const l of logsByHash.get(h.hash) || []) {
-        const d = decodeTransfer(l);
-        if (d) events.push(d);
-      }
-      return { networkId: cfg.networkId, number: h.number, hash: h.hash, parentHash: h.parentHash, events };
-    });
+    const bundles: BlockBundle[] = stable.map(h => ({
+      networkId: cfg.networkId,
+      number: h.number,
+      hash: h.hash,
+      parentHash: h.parentHash,
+      events: (logsByHash.get(h.hash) ?? []).flatMap(l => decodeTransfer(l) ?? [])
+    }));
     await ingestBundles(pool, bundles);
     for (const b of bundles) usable.add(b.hash);
     out.ingested = bundles.length;
@@ -108,7 +107,7 @@ export async function tick(pool: Pool, rpc: ChainRpc, cfg: PollerConfig): Promis
     // Harmless; the next tick re-fetches. "diverged": next tick's handleDeepReorg resolves it.
   }
   const now = await getCursor(pool, cfg.networkId);
-  out.cursor = now ? now.number : null;
+  out.cursor = now?.number ?? null;
   return out;
 }
 

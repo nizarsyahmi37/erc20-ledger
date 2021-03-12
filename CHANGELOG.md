@@ -22,6 +22,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and 
 - JSON-RPC requests use the http timeout option and req.destroy() instead of the deprecated req.abort()
 - Backoff sleep is util.promisify(setTimeout); status and error handling use ?. and ??
 - Block ingestion builds event rows with flatMap instead of reduce and concat
+- Poller derives bundle events with flatMap and uses ?. and ?? for cursors and log grouping, dropping a manual loop
 
 ### Removed
 - bn.js and @types/bn.js dependencies
