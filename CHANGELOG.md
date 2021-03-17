@@ -29,6 +29,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and 
 - Service loop sleeps with util.promisify(setTimeout) and logs reconcile detail with ??
 - Fake chain and tests model token amounts as bigint, matching what the decoder now produces
 - Tests use Node's built-in assert.rejects instead of a hand-written helper
+- README compatibility table, quick start (PostgreSQL 13) and amount handling notes updated for Node 14, TypeScript 4.2 and pg 8
 
 ### Removed
 - bn.js and @types/bn.js dependencies

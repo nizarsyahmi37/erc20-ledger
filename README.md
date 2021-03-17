@@ -4,10 +4,10 @@ Indexes ERC-20 (EIP-20) `Transfer` events, including mints and burns, into Postg
 balances that stay correct under duplicates, out-of-order delivery and chain reorgs, and continuously
 reconciles those balances against the chain.
 
-TypeScript 2.9 compiled to ES2017, Node.js >= 8.11 (LTS), PostgreSQL >= 9.5 (developed against 10), a geth or Parity JSON-RPC endpoint.
+TypeScript 4.2 compiled to ES2020, Node.js >= 14.16 (LTS), PostgreSQL >= 9.5 (developed against 13), a geth, OpenEthereum or Nethermind JSON-RPC endpoint.
 
 ```
-docker-compose up -d                 # postgres 10 on :5433
+docker-compose up -d                 # postgres 13 on :5433
 cp .env.example .env                 # set RPC_URL, TOKENS, START_BLOCK, then export the variables
 npm ci && npm run build
 npm run migrate
@@ -19,24 +19,23 @@ API: `GET /healthz`, `GET /balances/:token/:holder`, `POST /ingest` (optional, b
 
 ## Compatibility baseline
 
-Everything here was chosen to exist in July 2018.
+Everything here was chosen to exist in March 2021.
 
 | Piece | Version | Notes |
 |---|---|---|
-| Node.js | 8.11 LTS ("Carbon") | native `async`/`await`, destructuring, object spread, `util.promisify`, `crypto.timingSafeEqual`; no `assert.rejects` (Node 10), no global `URL` (imported from `url`) |
-| TypeScript | 2.9.2 | `strict` mode, string-literal types and discriminated unions; no `bigint` (TS 3.2), no `unknown` (TS 3.0) |
-| PostgreSQL | 10 (>= 9.5) | `INSERT ... ON CONFLICT` is the idempotency primitive; multi-array `UNNEST`, recursive CTEs |
-| pg (node-postgres) | 7.4.3 | built-in `Pool` with Promises |
-| bn.js | 4.11.8 | hex -> decimal for uint256; amounts are never JS numbers |
-| mocha | 5.2.0 | plus Node's `assert` |
-| `@types/*` | node 10.5, pg 7.4, mocha 5.2, bn.js 4.11 | replace the hand-written declarations used before |
-| JSON-RPC | geth 1.8 / Parity 1.11 | `eth_getBlockByNumber`, `eth_getLogs` (range), `eth_call` at a block, batch requests |
-| Lockfile | npm 5/6 `package-lock.json` (v1) | install with `npm ci` |
+| Node.js | 14.16 LTS ("Fermium") | native `?.`/`??`, `BigInt`, `Array#flatMap`, `fs.promises`, `assert.rejects`, numeric separators; no `fetch` (Node 18), no `timers/promises` (Node 15), no `String#replaceAll` (Node 15) |
+| TypeScript | 4.2.2 | `strict` mode, ES2020 target, `bigint`; `useUnknownInCatchVariables` (4.4) and `satisfies` (4.9) do not exist yet |
+| PostgreSQL | 13 (>= 9.5) | `INSERT ... ON CONFLICT` is the idempotency primitive; multi-array `UNNEST`, recursive CTEs |
+| pg (node-postgres) | 8.5.1 | built-in `Pool` with Promises, SCRAM-SHA-256 support |
+| mocha | 8.3.0 | plus Node's `assert` |
+| `@types/*` | node 14.14, pg 7.14, mocha 8.2 | |
+| JSON-RPC | geth 1.10 / OpenEthereum 3.x / Nethermind | `eth_getBlockByNumber`, `eth_getLogs` (range), `eth_call` at a block, batch requests |
+| Lockfile | npm 7 `package-lock.json` (v2) | install with `npm ci`; npm 6 (bundled with Node 14) reads it too |
 
-Consequences worth knowing: the `eth_getLogs` `blockHash` filter (EIP-234) is still a draft and not
-supported by every client, so the service does not rely on it and instead gets fork-consistent logs with a
-header/log/header "sandwich" (see Reorgs). Rows are keyed by **network id** (the `net_version` value), not
-by EIP-155 chain id, so a node does not need to report one.
+Consequences worth knowing: the `eth_getLogs` `blockHash` filter (EIP-234) is available on most clients
+now but not on every provider, so the service still gets fork-consistent logs with a header/log/header
+"sandwich" (see Reorgs) and works against any of them. Rows are keyed by **network id** (the
+`net_version` value) rather than the EIP-155 chain id, so the node does not need to implement `eth_chainId`.
 
 ## Design in one page
 
@@ -180,7 +179,8 @@ enumerated on-chain; it shows up as a `*supply*` mismatch instead. Monitor `stat
 4. **RPC throughput:** one `eth_getBlockByNumber` per block (batched, 50 per request) read twice per tick
    for the consistency sandwich, plus one range `eth_getLogs`. A multi-million-block backfill is bounded
    by header throughput.
-5. **Block numbers are JS numbers** (safe far beyond any plausible chain height); uint256 amounts are not.
+5. **Block numbers are JS numbers** (safe far beyond any plausible chain height). uint256 amounts are decoded
+   with native `BigInt` and stored as exact decimal strings in `numeric(78,0)`; they never pass through a JS number.
 6. **Addresses and hashes are lowercase hex `text`.** Simple and debuggable; `bytea` would roughly halve
    index size.
 7. **Single network per process** (`NETWORK_ID`); the schema is network-keyed, the poller is not multiplexed.
