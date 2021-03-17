@@ -1,3 +1,4 @@
+import { promisify } from "util";
 import { createApi } from "./api";
 import { loadConfig } from "./config";
 import { createPool, LOCK_NS_LEADER } from "./db";
@@ -6,7 +7,7 @@ import { initNetworkState, tick } from "./poller";
 import { reconcile } from "./reconcile";
 import { JsonRpcClient } from "./rpc";
 
-const sleep = (ms: number) => new Promise<void>(resolve => setTimeout(resolve, ms));
+const sleep = promisify(setTimeout);
 
 async function main(): Promise<void> {
   const cfg = loadConfig(process.env);
@@ -32,7 +33,7 @@ async function main(): Promise<void> {
     const r = await leader.query("SELECT pg_try_advisory_lock($1, $2) AS ok", [LOCK_NS_LEADER, cfg.networkId]);
     if (r.rows[0].ok) break;
     console.log("standby: another instance holds the leader lock");
-    await sleep(10000);
+    await sleep(10_000);
   }
 
   let lastReconcile = 0;
@@ -56,7 +57,7 @@ async function main(): Promise<void> {
       lastReconcile = Date.now();
       const r = await reconcile(pool, rpc, { networkId: cfg.networkId });
       const log = r.status === "ok" ? console.log : console.error;
-      log(`[reconcile] ${r.status} block=${r.blockNumber} checked=${r.checked} mismatched=${r.mismatched} ${r.detail || ""}`);
+      log(`[reconcile] ${r.status} block=${r.blockNumber} checked=${r.checked} mismatched=${r.mismatched} ${r.detail ?? ""}`);
     }
     if (!behind) await sleep(cfg.pollIntervalMs);
   }
