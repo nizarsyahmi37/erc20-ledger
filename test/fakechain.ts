@@ -6,7 +6,7 @@ export interface Xfer {
   token: string;
   from: string;
   to: string;
-  amount: number; // small numbers only: tests never need uint256 here
+  amount: bigint;
 }
 
 export interface FakeBlock extends Header {
@@ -96,16 +96,16 @@ export class FakeChain implements ChainRpc {
     return out;
   }
 
-  stateAt(token: string, block: number): { bal: Map<string, number>; supply: number } {
-    const bal = new Map<string, number>();
-    let supply = 0;
+  stateAt(token: string, block: number): { bal: Map<string, bigint>; supply: bigint } {
+    const bal = new Map<string, bigint>();
+    let supply = 0n;
     for (let n = 0; n <= block; n++) {
       for (const x of this.block(this.canonical[n]).xfers) {
         if (x.token !== token) continue;
         if (x.from === ZERO_ADDRESS) supply += x.amount;
-        else bal.set(x.from, (bal.get(x.from) || 0) - x.amount);
+        else bal.set(x.from, (bal.get(x.from) ?? 0n) - x.amount);
         if (x.to === ZERO_ADDRESS) supply -= x.amount;
-        else bal.set(x.to, (bal.get(x.to) || 0) + x.amount);
+        else bal.set(x.to, (bal.get(x.to) ?? 0n) + x.amount);
       }
     }
     return { bal, supply };
@@ -114,7 +114,7 @@ export class FakeChain implements ChainRpc {
   async balancesOf(token: string, holders: string[], block: number): Promise<string[]> {
     if (this.failBalanceFor.has(token)) throw new Error("rpc down");
     const { bal } = this.stateAt(token, block);
-    return holders.map(h => String(bal.get(h) || 0));
+    return holders.map(h => String(bal.get(h) ?? 0n));
   }
 
   async totalSupply(token: string, block: number): Promise<string | null> {

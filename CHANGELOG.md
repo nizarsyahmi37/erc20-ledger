@@ -27,6 +27,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and 
 - Health and balance responses use ?. and ??; responses chain writeHead().end() now that it returns the response
 - Migration runner reads files through fs.promises
 - Service loop sleeps with util.promisify(setTimeout) and logs reconcile detail with ??
+- Fake chain and tests model token amounts as bigint, matching what the decoder now produces
+- Tests use Node's built-in assert.rejects instead of a hand-written helper
 
 ### Removed
 - bn.js and @types/bn.js dependencies

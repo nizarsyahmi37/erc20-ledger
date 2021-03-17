@@ -13,7 +13,7 @@ const T = addr(0xa11ce0000);
 const [A, B, C] = [addr(1), addr(2), addr(3)];
 const NET = 1;
 
-const x = (from: string, to: string, amount: number): Xfer => ({ token: T, from, to, amount });
+const x = (from: string, to: string, amount: bigint): Xfer => ({ token: T, from, to, amount });
 
 const cfg = (confirmations: number): PollerConfig => ({
   networkId: NET,
@@ -32,19 +32,6 @@ const bundle = (chain: FakeChain, b: FakeBlock): BlockBundle => ({
   events: chain.logsOf(b).map(l => decodeTransfer(l) as DecodedEvent)
 });
 
-// assert.rejects only arrived in Node 10, so promises need a helper.
-async function rejects(p: Promise<any>, matcher?: RegExp | (new (...args: any[]) => Error)): Promise<void> {
-  let err: any = null;
-  try {
-    await p;
-  } catch (e) {
-    err = e;
-  }
-  assert.ok(err, "expected promise to reject");
-  if (matcher instanceof RegExp) assert.ok(matcher.test(err.message), `wrong error message: ${err.message}`);
-  else if (matcher) assert.ok(err instanceof matcher, `wrong error type: ${err}`);
-}
-
 const suite: any = DB_URL ? describe : describe.skip;
 
 suite("ledger (set TEST_DATABASE_URL)", () => {
@@ -53,11 +40,11 @@ suite("ledger (set TEST_DATABASE_URL)", () => {
 
   const bal = async (h: string) => {
     const r = await pool.query("SELECT balance FROM balances WHERE network_id = 1 AND token = $1 AND holder = $2", [T, h]);
-    return r.rows[0] ? Number(r.rows[0].balance) : 0;
+    return BigInt(r.rows[0]?.balance ?? 0);
   };
   const supply = async () => {
     const r = await pool.query("SELECT supply FROM token_supply WHERE network_id = 1 AND token = $1", [T]);
-    return r.rows[0] ? Number(r.rows[0].supply) : 0;
+    return BigInt(r.rows[0]?.supply ?? 0);
   };
   const count = async (table: string) => Number((await pool.query(`SELECT count(*) AS n FROM ${table}`)).rows[0].n);
 
@@ -89,19 +76,19 @@ suite("ledger (set TEST_DATABASE_URL)", () => {
   });
 
   it("applies mint/transfer/burn only up to the confirmation depth", async () => {
-    chain.mine([[x(ZERO_ADDRESS, A, 100)], [x(A, B, 30)], [x(B, ZERO_ADDRESS, 10)], [], []]);
+    chain.mine([[x(ZERO_ADDRESS, A, 100n)], [x(A, B, 30n)], [x(B, ZERO_ADDRESS, 10n)], [], []]);
     const r = await tick(pool, chain, cfg(2)); // head=5 -> applies through 3
     assert.strictEqual(r.cursor, 3);
-    assert.strictEqual(await bal(A), 70);
-    assert.strictEqual(await bal(B), 20);
-    assert.strictEqual(await supply(), 90);
+    assert.strictEqual(await bal(A), 70n);
+    assert.strictEqual(await bal(B), 20n);
+    assert.strictEqual(await supply(), 90n);
     assert.strictEqual(await count("events"), 3); // everything ingested, only 1..3 applied
   });
 
   it("is idempotent: repeated ticks and duplicate deliveries change nothing", async () => {
-    const blocks = chain.mine([[x(ZERO_ADDRESS, A, 100)], [x(A, B, 40)], []]);
+    const blocks = chain.mine([[x(ZERO_ADDRESS, A, 100n)], [x(A, B, 40n)], []]);
     await tick(pool, chain, cfg(0));
-    const snap = async () => JSON.stringify([await bal(A), await bal(B), await supply(), await count("events"), await count("applied_blocks")]);
+    const snap = async () => [await bal(A), await bal(B), await supply(), await count("events"), await count("applied_blocks")].join();
     const before = await snap();
     for (let i = 0; i < 3; i++) await tick(pool, chain, cfg(0));
     for (const b of blocks) {
@@ -111,21 +98,21 @@ suite("ledger (set TEST_DATABASE_URL)", () => {
     }
     assert.deepStrictEqual(await applyThrough(pool, NET, blocks[2].hash), { status: "noop" });
     assert.strictEqual(await snap(), before);
-    assert.strictEqual(await bal(B), 40);
+    assert.strictEqual(await bal(B), 40n);
   });
 
   it("rejects a redelivery that contradicts the stored block", async () => {
-    const [b1] = chain.mine([[x(ZERO_ADDRESS, A, 100)]]);
+    const [b1] = chain.mine([[x(ZERO_ADDRESS, A, 100n)]]);
     await ingestBundles(pool, [bundle(chain, b1)]);
-    await rejects(ingestBundles(pool, [{ ...bundle(chain, b1), events: [] }]), IngestConflictError);
+    await assert.rejects(ingestBundles(pool, [{ ...bundle(chain, b1), events: [] }]), IngestConflictError);
     const tampered = bundle(chain, b1);
     tampered.events[0].amount = "999";
     // (a same-hash, same-count, different-amount redelivery is NOT detectable; see README "Limits")
-    await rejects(ingestBundles(pool, [bundle(chain, b1), tampered]), IngestConflictError);
+    await assert.rejects(ingestBundles(pool, [bundle(chain, b1), tampered]), IngestConflictError);
   });
 
   it("handles out-of-order delivery: gap until the missing block arrives, same result as in-order", async () => {
-    const bs = chain.mine([[x(ZERO_ADDRESS, A, 100)], [x(A, B, 25)], [x(B, C, 5)], [x(A, C, 1)]]);
+    const bs = chain.mine([[x(ZERO_ADDRESS, A, 100n)], [x(A, B, 25n)], [x(B, C, 5n)], [x(A, C, 1n)]]);
     const results: string[] = [];
     for (const i of [3, 1, 3, 0, 2]) {
       // block 4, 2, 4 again, 1, 3
@@ -133,68 +120,68 @@ suite("ledger (set TEST_DATABASE_URL)", () => {
       results.push((await applyThrough(pool, NET, bs[3].hash)).status);
     }
     assert.deepStrictEqual(results, ["gap", "gap", "gap", "gap", "applied"]);
-    assert.strictEqual(await bal(A), 74);
-    assert.strictEqual(await bal(B), 20);
-    assert.strictEqual(await bal(C), 6);
-    assert.strictEqual(await supply(), 100);
+    assert.strictEqual(await bal(A), 74n);
+    assert.strictEqual(await bal(B), 20n);
+    assert.strictEqual(await bal(C), 6n);
+    assert.strictEqual(await supply(), 100n);
   });
 
   it("orphan blocks never reach balances (reorg before confirmation)", async () => {
-    const [b1] = chain.mine([[x(ZERO_ADDRESS, A, 100)]]);
+    const [b1] = chain.mine([[x(ZERO_ADDRESS, A, 100n)]]);
     await tick(pool, chain, cfg(2)); // ingests b1 (unconfirmed)
-    const orphan = chain.mk([x(A, B, 100)], b1.hash);
+    const orphan = chain.mk([x(A, B, 100n)], b1.hash);
     chain.setTip(orphan.hash);
     await tick(pool, chain, cfg(2)); // sees the fork, ingests it, still unconfirmed
-    const good2 = chain.mk([x(A, C, 50)], b1.hash);
+    const good2 = chain.mk([x(A, C, 50n)], b1.hash);
     const good3 = chain.mk([], good2.hash);
     const good4 = chain.mk([], good3.hash);
     chain.setTip(good4.hash);
     await tick(pool, chain, cfg(2));
-    assert.strictEqual(await bal(A), 50);
-    assert.strictEqual(await bal(B), 0);
-    assert.strictEqual(await bal(C), 50);
+    assert.strictEqual(await bal(A), 50n);
+    assert.strictEqual(await bal(B), 0n);
+    assert.strictEqual(await bal(C), 50n);
     assert.strictEqual(await count("blocks"), 5); // b1, orphan, good2..4 all retained
   });
 
   it("deep reorg after apply: rolls back, then re-applies the new fork", async () => {
-    const bs = chain.mine([[x(ZERO_ADDRESS, A, 100)], [x(A, B, 60)], [x(B, C, 10)], [], []]);
+    const bs = chain.mine([[x(ZERO_ADDRESS, A, 100n)], [x(A, B, 60n)], [x(B, C, 10n)], [], []]);
     await tick(pool, chain, cfg(1)); // cursor=4
-    assert.strictEqual(await bal(B), 50);
+    assert.strictEqual(await bal(B), 50n);
     // replace blocks 3..: the A->B transfer (block 2) is kept, block 3's B->C is dropped for A->C
-    const n3 = chain.mk([x(A, C, 7)], bs[1].hash);
+    const n3 = chain.mk([x(A, C, 7n)], bs[1].hash);
     const n4 = chain.mk([], n3.hash);
     const n5 = chain.mk([], n4.hash);
     const n6 = chain.mk([], n5.hash);
     chain.setTip(n6.hash);
     const r = await tick(pool, chain, cfg(1));
     assert.ok(r.reorgRolledBack > 0);
-    assert.deepStrictEqual([await bal(A), await bal(B), await bal(C), await supply()], [33, 60, 7, 100]);
+    assert.deepStrictEqual([await bal(A), await bal(B), await bal(C), await supply()], [33n, 60n, 7n, 100n]);
     // the reorg-and-replay must equal a from-scratch rebuild
     await rebuildBalances(pool, NET);
-    assert.deepStrictEqual([await bal(A), await bal(B), await bal(C)], [33, 60, 7]);
+    assert.deepStrictEqual([await bal(A), await bal(B), await bal(C)], [33n, 60n, 7n]);
   });
 
   it("same tx re-mined in a different block after a reorg is counted once", async () => {
-    const [b1] = chain.mine([[x(ZERO_ADDRESS, A, 100)]]);
-    const t = x(A, B, 10);
+    const [b1] = chain.mine([[x(ZERO_ADDRESS, A, 100n)]]);
+    const t = x(A, B, 10n);
     const old2 = chain.mk([t], b1.hash);
     chain.setTip(old2.hash);
     chain.mine([[], []]);
     await tick(pool, chain, cfg(1));
-    assert.strictEqual(await bal(B), 10);
+    assert.strictEqual(await bal(B), 10n);
     const new2 = chain.mk([], b1.hash);
     const new3 = chain.mk([t], new2.hash); // same transfer, new block
     const new4 = chain.mk([], new3.hash);
     const new5 = chain.mk([], new4.hash);
     chain.setTip(new5.hash);
     await tick(pool, chain, cfg(1));
-    assert.strictEqual(await bal(B), 10);
-    assert.strictEqual(await bal(A), 90);
+    assert.strictEqual(await bal(B), 10n);
+    assert.strictEqual(await bal(A), 90n);
   });
 
   it("a reorg during the log fetch never files logs under the wrong header", async () => {
-    const [b1, b2] = chain.mine([[x(ZERO_ADDRESS, A, 100)], [x(A, B, 10)]]);
-    const alt2 = chain.mk([x(A, C, 77)], b1.hash);
+    const [b1, b2] = chain.mine([[x(ZERO_ADDRESS, A, 100n)], [x(A, B, 10n)]]);
+    const alt2 = chain.mk([x(A, C, 77n)], b1.hash);
     const alt3 = chain.mk([], alt2.hash);
     chain.onGetLogs = () => {
       chain.onGetLogs = null;
@@ -204,24 +191,24 @@ suite("ledger (set TEST_DATABASE_URL)", () => {
     assert.strictEqual(r1.ingested, 1); // only block 1 was provably consistent
     assert.strictEqual(Number((await pool.query("SELECT count(*) AS n FROM blocks WHERE hash = $1", [b2.hash])).rows[0].n), 0);
     await tick(pool, chain, cfg(0));
-    assert.deepStrictEqual([await bal(A), await bal(B), await bal(C)], [23, 0, 77]);
+    assert.deepStrictEqual([await bal(A), await bal(B), await bal(C)], [23n, 0n, 77n]);
   });
 
   it("halts instead of guessing when a reorg exceeds MAX_REORG_DEPTH", async () => {
-    chain.mine([[x(ZERO_ADDRESS, A, 1)], [], [], [], []]);
+    chain.mine([[x(ZERO_ADDRESS, A, 1n)], [], [], [], []]);
     const small = { ...cfg(0), maxReorgDepth: 2 };
     await tick(pool, chain, small); // cursor=5
     let p = chain.canonical[0]; // fork from genesis: nothing in common within the last 2 blocks
     for (let i = 0; i < 7; i++) p = chain.mk([], p).hash;
     chain.setTip(p);
-    await rejects(tick(pool, chain, small), /MAX_REORG_DEPTH/);
+    await assert.rejects(tick(pool, chain, small), /MAX_REORG_DEPTH/);
     assert.strictEqual((await pool.query("SELECT halted FROM network_state")).rows[0].halted, true);
-    await rejects(tick(pool, chain, small));
+    await assert.rejects(tick(pool, chain, small));
   });
 
   describe("reconciliation", () => {
     beforeEach(async () => {
-      chain.mine([[x(ZERO_ADDRESS, A, 100)], [x(A, B, 30)], [x(B, ZERO_ADDRESS, 5)], []]);
+      chain.mine([[x(ZERO_ADDRESS, A, 100n)], [x(A, B, 30n)], [x(B, ZERO_ADDRESS, 5n)], []]);
       await tick(pool, chain, cfg(0));
     });
 
@@ -258,11 +245,11 @@ suite("ledger (set TEST_DATABASE_URL)", () => {
   });
 
   it("concurrent appliers cannot double-apply", async () => {
-    const bs = chain.mine([[x(ZERO_ADDRESS, A, 100)], [x(A, B, 1)]]);
+    const bs = chain.mine([[x(ZERO_ADDRESS, A, 100n)], [x(A, B, 1n)]]);
     await ingestBundles(pool, bs.map(b => bundle(chain, b)));
     const rs = await Promise.all(Array.from({ length: 8 }, () => applyThrough(pool, NET, bs[1].hash)));
     assert.strictEqual(rs.filter(r => r.status === "applied").length, 1);
-    assert.strictEqual(await bal(A), 99);
-    assert.strictEqual(await supply(), 100);
+    assert.strictEqual(await bal(A), 99n);
+    assert.strictEqual(await supply(), 100n);
   });
 });
