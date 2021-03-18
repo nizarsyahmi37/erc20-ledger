@@ -3,7 +3,7 @@
 All notable changes to this project are documented in this file.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.3.0] - 2021-03-18
 
 ### Added
 - pg_isready healthcheck for the development database
@@ -30,6 +30,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and 
 - Fake chain and tests model token amounts as bigint, matching what the decoder now produces
 - Tests use Node's built-in assert.rejects instead of a hand-written helper
 - README compatibility table, quick start (PostgreSQL 13) and amount handling notes updated for Node 14, TypeScript 4.2 and pg 8
+- Version bumped to 0.3.0; package-lock.json regenerated as lockfile v2 (npm 7)
 
 ### Removed
 - bn.js and @types/bn.js dependencies
