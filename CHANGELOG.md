@@ -7,6 +7,9 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and 
 
 ### Changed
 - docker-compose file uses PostgreSQL 16 (9.5 remains the minimum supported version) and drops the obsolete top-level version key used by Compose V2
+- Runtime baseline raised from Node 14.16 to Node 20.11 LTS (engines.node >= 20.11.0)
+- TypeScript 4.2.2 -> 5.3.3 targeting ES2022 with the ES2023 library; @types/node 14 -> 20
+- Caught errors keep their old type for now (useUnknownInCatchVariables is switched off explicitly until they are handled)
 
 ## [0.3.0] - 2021-03-18
 
