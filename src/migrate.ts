@@ -13,7 +13,7 @@ export async function migrate(pool: Pool): Promise<string[]> {
     await tx(pool, async c => {
       await c.query("SELECT pg_advisory_xact_lock(7001)"); // serialise concurrent starters
       const r = await c.query("SELECT 1 FROM schema_migrations WHERE name = $1", [f]);
-      if (r.rowCount > 0) return;
+      if ((r.rowCount ?? 0) > 0) return;
       await c.query(await fs.readFile(path.join(DIR, f), "utf8"));
       await c.query("INSERT INTO schema_migrations (name) VALUES ($1)", [f]);
       done.push(f);

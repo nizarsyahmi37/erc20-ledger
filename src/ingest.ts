@@ -100,7 +100,7 @@ export async function ingestBundles(pool: Pool, bundles: BlockBundle[]): Promise
           rows.map(x => x.e.amount)
         ]
       );
-      eventsNew = r.rowCount;
+      eventsNew = r.rowCount ?? 0;
     }
     return { blocksNew: fresh.size, blocksDuplicate: existing.length, eventsNew };
   });

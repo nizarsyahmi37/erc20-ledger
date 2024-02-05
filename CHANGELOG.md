@@ -10,6 +10,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and 
 - Runtime baseline raised from Node 14.16 to Node 20.11 LTS (engines.node >= 20.11.0)
 - TypeScript 4.2.2 -> 5.3.3 targeting ES2022 with the ES2023 library; @types/node 14 -> 20
 - Caught errors keep their old type for now (useUnknownInCatchVariables is switched off explicitly until they are handled)
+- pg 8.5.1 -> 8.11.3, @types/pg 7.14 -> 8.11
+- QueryResult.rowCount is nullable in the new typings; callers treat null as zero
 
 ## [0.3.0] - 2021-03-18
 

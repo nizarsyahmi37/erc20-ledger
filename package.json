@@ -14,12 +14,12 @@
     "test": "npm run build && mocha dist/test"
   },
   "dependencies": {
-    "pg": "8.5.1"
+    "pg": "8.11.3"
   },
   "devDependencies": {
     "@types/mocha": "8.2.1",
     "@types/node": "20.11.16",
-    "@types/pg": "7.14.10",
+    "@types/pg": "8.11.0",
     "mocha": "8.3.0",
     "typescript": "5.3.3"
   }

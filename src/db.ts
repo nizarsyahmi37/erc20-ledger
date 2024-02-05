@@ -5,7 +5,7 @@ export type Conn = PoolClient;
 
 export interface QueryResult {
   rows: any[];
-  rowCount: number;
+  rowCount: number | null;
 }
 
 export interface Queryable {
