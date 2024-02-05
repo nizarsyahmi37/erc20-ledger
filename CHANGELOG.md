@@ -3,6 +3,11 @@
 All notable changes to this project are documented in this file.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Changed
+- docker-compose file uses PostgreSQL 16 (9.5 remains the minimum supported version) and drops the obsolete top-level version key used by Compose V2
+
 ## [0.3.0] - 2021-03-18
 
 ### Added
