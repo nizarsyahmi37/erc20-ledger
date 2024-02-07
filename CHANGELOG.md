@@ -5,6 +5,9 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and 
 
 ## [Unreleased]
 
+### Added
+- Tests for the JSON-RPC client against an in-process HTTP server: head and header parsing, id matching of reordered batch answers, eth_getLogs filter, exact uint256 decoding, totalSupply fallbacks, RpcError, retries, URL credentials and 50-call batch splitting
+
 ### Changed
 - docker-compose file uses PostgreSQL 16 (9.5 remains the minimum supported version) and drops the obsolete top-level version key used by Compose V2
 - Runtime baseline raised from Node 14.16 to Node 20.11 LTS (engines.node >= 20.11.0)
