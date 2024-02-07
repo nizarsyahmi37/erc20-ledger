@@ -1,4 +1,5 @@
-import * as assert from "assert";
+import assert from "node:assert/strict";
+import { after, before, beforeEach, describe, it } from "node:test";
 import { applyThrough, rebuildBalances } from "../src/apply";
 import { createPool, Pool } from "../src/db";
 import { decodeTransfer, DecodedEvent, TRANSFER_TOPIC, ZERO_ADDRESS } from "../src/decode";
@@ -32,9 +33,7 @@ const bundle = (chain: FakeChain, b: FakeBlock): BlockBundle => ({
   events: chain.logsOf(b).map(l => decodeTransfer(l) as DecodedEvent)
 });
 
-const suite: any = DB_URL ? describe : describe.skip;
-
-suite("ledger (set TEST_DATABASE_URL)", () => {
+describe("ledger", { skip: DB_URL ? false : "set TEST_DATABASE_URL" }, () => {
   let pool: Pool;
   let chain: FakeChain;
 
