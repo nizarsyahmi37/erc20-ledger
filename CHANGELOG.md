@@ -17,6 +17,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and 
 - pg 8.5.1 -> 8.11.3, @types/pg 7.14 -> 8.11
 - QueryResult.rowCount is nullable in the new typings; callers treat null as zero
 - Tests run on Node's built-in test runner and node:assert/strict (npm test uses --test-concurrency=1 because suites share one database)
+- Caught errors are typed unknown (strict useUnknownInCatchVariables) and turned into messages with a shared errorMessage() helper
 
 ### Removed
 - mocha and @types/mocha dev dependencies

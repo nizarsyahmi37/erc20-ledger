@@ -1,5 +1,6 @@
 import { getCursor } from "./apply";
 import { Pool } from "./db";
+import { errorMessage } from "./errors";
 import { ChainRpc } from "./rpc";
 
 export interface ReconcileOptions {
@@ -144,7 +145,7 @@ export async function reconcile(pool: Pool, rpc: ChainRpc, opts: ReconcileOption
     return await finish(mismatched > 0 ? "drift" : "ok", cursor.number, checked, mismatched, null, diffs);
   } catch (e) {
     await c.query("ROLLBACK").catch(() => undefined);
-    return await finish("error", null, 0, 0, e.message);
+    return await finish("error", null, 0, 0, errorMessage(e));
   } finally {
     c.release();
   }

@@ -2,6 +2,7 @@ import { promisify } from "util";
 import { createApi } from "./api";
 import { loadConfig } from "./config";
 import { createPool, LOCK_NS_LEADER } from "./db";
+import { errorMessage } from "./errors";
 import { migrate } from "./migrate";
 import { initNetworkState, tick } from "./poller";
 import { reconcile } from "./reconcile";
@@ -45,8 +46,9 @@ async function main(): Promise<void> {
       behind = t.cursor !== null && t.head - t.cursor > cfg.confirmations + cfg.maxBlocksPerTick;
       if (t.ingested > 0 || t.reorgRolledBack > 0) console.log(`[tick] head=${t.head} cursor=${t.cursor} ingested=${t.ingested} ${t.apply}`);
     } catch (e) {
-      console.error("[tick] failed:", e.message);
-      if (/halted|MAX_REORG_DEPTH/.test(e.message)) {
+      const message = errorMessage(e);
+      console.error("[tick] failed:", message);
+      if (/halted|MAX_REORG_DEPTH/.test(message)) {
         fatal = true; // needs an operator
         break;
       }

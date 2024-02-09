@@ -3,6 +3,7 @@ import * as https from "https";
 import { URL } from "url";
 import { promisify } from "util";
 import { RawLog, TRANSFER_TOPIC } from "./decode";
+import { errorMessage } from "./errors";
 
 export interface Header {
   number: number;
@@ -81,7 +82,7 @@ export class JsonRpcClient implements ChainRpc {
   constructor(private readonly url: string) {}
 
   private async post(body: any): Promise<any> {
-    let lastErr: Error | undefined;
+    let lastErr: unknown;
     for (let attempt = 0; attempt <= this.retries; attempt++) {
       try {
         return JSON.parse(await httpPost(this.url, JSON.stringify(body), this.timeoutMs));
@@ -90,7 +91,7 @@ export class JsonRpcClient implements ChainRpc {
         await sleep(Math.min(200 * 2 ** attempt, 5_000) + Math.random() * 100);
       }
     }
-    throw new Error(`rpc transport failed after retries: ${lastErr?.message}`);
+    throw new Error(`rpc transport failed after retries: ${errorMessage(lastErr)}`);
   }
 
   /** JSON-RPC 2.0 batch; results come back in request order. */

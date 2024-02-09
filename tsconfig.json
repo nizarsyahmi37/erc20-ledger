@@ -16,8 +16,7 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "outDir": "dist",
-    "rootDir": ".",
-    "useUnknownInCatchVariables": false
+    "rootDir": "."
   },
   "include": [
     "src",
