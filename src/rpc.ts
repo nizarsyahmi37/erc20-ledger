@@ -1,7 +1,7 @@
-import * as http from "http";
-import * as https from "https";
-import { URL } from "url";
-import { promisify } from "util";
+import * as http from "node:http";
+import * as https from "node:https";
+import { URL } from "node:url";
+import { promisify } from "node:util";
 import { RawLog, TRANSFER_TOPIC } from "./decode";
 import { errorMessage } from "./errors";
 

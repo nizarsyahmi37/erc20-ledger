@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
-import type { Server } from "http";
-import * as http from "http";
-import type { AddressInfo } from "net";
+import type { Server } from "node:http";
+import * as http from "node:http";
+import type { AddressInfo } from "node:net";
 import { after, before, beforeEach, describe, it } from "node:test";
 import { TRANSFER_TOPIC } from "../src/decode";
 import { JsonRpcClient, RpcError } from "../src/rpc";

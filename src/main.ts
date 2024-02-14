@@ -1,4 +1,4 @@
-import { promisify } from "util";
+import { promisify } from "node:util";
 import { createApi } from "./api";
 import { loadConfig } from "./config";
 import { createPool, LOCK_NS_LEADER } from "./db";

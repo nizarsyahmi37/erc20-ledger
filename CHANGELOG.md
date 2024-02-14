@@ -18,6 +18,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and 
 - QueryResult.rowCount is nullable in the new typings; callers treat null as zero
 - Tests run on Node's built-in test runner and node:assert/strict (npm test uses --test-concurrency=1 because suites share one database)
 - Caught errors are typed unknown (strict useUnknownInCatchVariables) and turned into messages with a shared errorMessage() helper
+- Built-in modules (http, https, url, util, crypto, fs, path, net) are imported with the node: protocol
 
 ### Removed
 - mocha and @types/mocha dev dependencies

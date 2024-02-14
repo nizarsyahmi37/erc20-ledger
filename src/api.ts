@@ -1,6 +1,6 @@
-import * as crypto from "crypto";
-import * as http from "http";
-import { URL } from "url";
+import * as crypto from "node:crypto";
+import * as http from "node:http";
+import { URL } from "node:url";
 import { getCursor } from "./apply";
 import { Pool } from "./db";
 import { decodeTransfer, DecodedEvent, RawLog } from "./decode";

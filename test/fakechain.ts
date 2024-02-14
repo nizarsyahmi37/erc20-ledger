@@ -1,4 +1,4 @@
-import * as crypto from "crypto";
+import * as crypto from "node:crypto";
 import { RawLog, TRANSFER_TOPIC, ZERO_ADDRESS } from "../src/decode";
 import { ChainRpc, Header } from "../src/rpc";
 
