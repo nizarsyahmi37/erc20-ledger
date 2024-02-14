@@ -21,6 +21,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and 
 - Built-in modules (http, https, url, util, crypto, fs, path, net) are imported with the node: protocol
 - Package is now type: module, compiled with module/moduleResolution NodeNext; relative imports carry .js extensions
 - pg is imported as a default import (CommonJS package); __dirname becomes import.meta.dirname and the entry-point check compares import.meta.url with argv[1]
+- JSON-RPC transport uses the global fetch API and AbortSignal.timeout instead of hand-rolled http/https request plumbing
+- URL credentials are sent as a Basic Authorization header (fetch rejects credentialed URLs); retry sleeps use timers/promises; the final transport error keeps its cause
 
 ### Removed
 - mocha and @types/mocha dev dependencies

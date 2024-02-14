@@ -1,7 +1,4 @@
-import * as http from "node:http";
-import * as https from "node:https";
-import { URL } from "node:url";
-import { promisify } from "node:util";
+import { setTimeout as sleep } from "node:timers/promises";
 import { RawLog, TRANSFER_TOPIC } from "./decode.js";
 import { errorMessage } from "./errors.js";
 
@@ -31,41 +28,10 @@ export class RpcError extends Error {
 }
 
 const hex = (n: number) => "0x" + n.toString(16);
-const sleep = promisify(setTimeout);
 
 function parseUint(r: string): string {
   if (!/^0x[0-9a-fA-F]{64}$/.test(r)) throw new Error(`unexpected eth_call return: ${r}`);
   return BigInt(r).toString();
-}
-
-function httpPost(target: string, payload: string, timeoutMs: number): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const u = new URL(target);
-    const mod = (u.protocol === "https:" ? https : http) as typeof http; // same request() signature
-    const req = mod.request(
-      {
-        hostname: u.hostname,
-        port: u.port,
-        path: u.pathname + u.search,
-        auth: u.username ? `${decodeURIComponent(u.username)}:${decodeURIComponent(u.password)}` : undefined,
-        method: "POST",
-        timeout: timeoutMs,
-        headers: { "Content-Type": "application/json", "Content-Length": Buffer.byteLength(payload) }
-      },
-      res => {
-        const chunks: Buffer[] = [];
-        res.on("data", (c: Buffer) => chunks.push(c));
-        res.on("end", () => {
-          const status = res.statusCode ?? 0;
-          if (status < 200 || status >= 300) reject(new Error(`HTTP ${status}`));
-          else resolve(Buffer.concat(chunks).toString("utf8"));
-        });
-      }
-    );
-    req.on("timeout", () => req.destroy(new Error(`timeout after ${timeoutMs}ms`)));
-    req.on("error", reject);
-    req.end(payload);
-  });
 }
 
 interface Call {
@@ -81,17 +47,28 @@ export class JsonRpcClient implements ChainRpc {
 
   constructor(private readonly url: string) {}
 
-  private async post(body: any): Promise<any> {
+  private async post(body: unknown): Promise<any> {
+    const endpoint = new URL(this.url);
+    const headers: Record<string, string> = { "Content-Type": "application/json" };
+    if (endpoint.username) {
+      // fetch() refuses URLs with embedded credentials, so move them into a Basic auth header
+      const credentials = `${decodeURIComponent(endpoint.username)}:${decodeURIComponent(endpoint.password)}`;
+      headers.Authorization = `Basic ${Buffer.from(credentials).toString("base64")}`;
+      endpoint.username = "";
+      endpoint.password = "";
+    }
     let lastErr: unknown;
     for (let attempt = 0; attempt <= this.retries; attempt++) {
       try {
-        return JSON.parse(await httpPost(this.url, JSON.stringify(body), this.timeoutMs));
+        const res = await fetch(endpoint, { method: "POST", headers, body: JSON.stringify(body), signal: AbortSignal.timeout(this.timeoutMs) });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        return await res.json();
       } catch (e) {
         lastErr = e;
         await sleep(Math.min(200 * 2 ** attempt, 5_000) + Math.random() * 100);
       }
     }
-    throw new Error(`rpc transport failed after retries: ${errorMessage(lastErr)}`);
+    throw new Error(`rpc transport failed after retries: ${errorMessage(lastErr)}`, { cause: lastErr });
   }
 
   /** JSON-RPC 2.0 batch; results come back in request order. */
