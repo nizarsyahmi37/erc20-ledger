@@ -19,6 +19,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and 
 - Tests run on Node's built-in test runner and node:assert/strict (npm test uses --test-concurrency=1 because suites share one database)
 - Caught errors are typed unknown (strict useUnknownInCatchVariables) and turned into messages with a shared errorMessage() helper
 - Built-in modules (http, https, url, util, crypto, fs, path, net) are imported with the node: protocol
+- Package is now type: module, compiled with module/moduleResolution NodeNext; relative imports carry .js extensions
+- pg is imported as a default import (CommonJS package); __dirname becomes import.meta.dirname and the entry-point check compares import.meta.url with argv[1]
 
 ### Removed
 - mocha and @types/mocha dev dependencies

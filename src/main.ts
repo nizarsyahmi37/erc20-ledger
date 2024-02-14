@@ -1,12 +1,12 @@
 import { promisify } from "node:util";
-import { createApi } from "./api";
-import { loadConfig } from "./config";
-import { createPool, LOCK_NS_LEADER } from "./db";
-import { errorMessage } from "./errors";
-import { migrate } from "./migrate";
-import { initNetworkState, tick } from "./poller";
-import { reconcile } from "./reconcile";
-import { JsonRpcClient } from "./rpc";
+import { createApi } from "./api.js";
+import { loadConfig } from "./config.js";
+import { createPool, LOCK_NS_LEADER } from "./db.js";
+import { errorMessage } from "./errors.js";
+import { migrate } from "./migrate.js";
+import { initNetworkState, tick } from "./poller.js";
+import { reconcile } from "./reconcile.js";
+import { JsonRpcClient } from "./rpc.js";
 
 const sleep = promisify(setTimeout);
 

@@ -1,9 +1,10 @@
 import { promises as fs } from "node:fs";
 import * as path from "node:path";
-import { createPool, Pool, tx } from "./db";
+import { fileURLToPath } from "node:url";
+import { createPool, Pool, tx } from "./db.js";
 
 // Compiled layout is dist/src/migrate.js, so migrations live two levels up.
-const DIR = path.join(__dirname, "..", "..", "migrations");
+const DIR = path.join(import.meta.dirname, "..", "..", "migrations");
 
 export async function migrate(pool: Pool): Promise<string[]> {
   await pool.query("CREATE TABLE IF NOT EXISTS schema_migrations (name text PRIMARY KEY, applied_at timestamptz NOT NULL DEFAULT now())");
@@ -22,7 +23,7 @@ export async function migrate(pool: Pool): Promise<string[]> {
   return done;
 }
 
-if (require.main === module) {
+if (process.argv[1] === fileURLToPath(import.meta.url)) {
   const pool = createPool(process.env.DATABASE_URL || "");
   migrate(pool)
     .then(done => console.log(done.length > 0 ? `applied: ${done.join(", ")}` : "up to date"))

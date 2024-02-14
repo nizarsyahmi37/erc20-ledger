@@ -2,8 +2,8 @@ import * as http from "node:http";
 import * as https from "node:https";
 import { URL } from "node:url";
 import { promisify } from "node:util";
-import { RawLog, TRANSFER_TOPIC } from "./decode";
-import { errorMessage } from "./errors";
+import { RawLog, TRANSFER_TOPIC } from "./decode.js";
+import { errorMessage } from "./errors.js";
 
 export interface Header {
   number: number;

@@ -2,6 +2,7 @@
   "name": "erc20-ledger",
   "version": "0.3.0",
   "private": true,
+  "type": "module",
   "description": "ERC-20 Transfer indexer with confirmations, reorg handling and on-chain reconciliation",
   "engines": {
     "node": ">=20.11.0"

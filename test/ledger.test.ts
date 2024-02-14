@@ -1,13 +1,13 @@
 import assert from "node:assert/strict";
 import { after, before, beforeEach, describe, it } from "node:test";
-import { applyThrough, rebuildBalances } from "../src/apply";
-import { createPool, Pool } from "../src/db";
-import { decodeTransfer, DecodedEvent, TRANSFER_TOPIC, ZERO_ADDRESS } from "../src/decode";
-import { BlockBundle, ingestBundles, IngestConflictError } from "../src/ingest";
-import { migrate } from "../src/migrate";
-import { initNetworkState, PollerConfig, tick } from "../src/poller";
-import { reconcile } from "../src/reconcile";
-import { addr, FakeBlock, FakeChain, Xfer } from "./fakechain";
+import { applyThrough, rebuildBalances } from "../src/apply.js";
+import { createPool, Pool } from "../src/db.js";
+import { decodeTransfer, DecodedEvent, TRANSFER_TOPIC, ZERO_ADDRESS } from "../src/decode.js";
+import { BlockBundle, ingestBundles, IngestConflictError } from "../src/ingest.js";
+import { migrate } from "../src/migrate.js";
+import { initNetworkState, PollerConfig, tick } from "../src/poller.js";
+import { reconcile } from "../src/reconcile.js";
+import { addr, FakeBlock, FakeChain, Xfer } from "./fakechain.js";
 
 const DB_URL = process.env.TEST_DATABASE_URL;
 const T = addr(0xa11ce0000);
