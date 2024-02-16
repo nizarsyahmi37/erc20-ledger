@@ -26,6 +26,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and 
 - Request bodies are read with for await over the request stream, still capped at 5 MiB, instead of manual data/end/error listeners
 - Poller picks its apply target with findLast and appends logs to buckets in place instead of copying arrays
 - Config sorts tokens with toSorted
+- Service loop sleeps with timers/promises instead of util.promisify(setTimeout)
 
 ### Removed
 - mocha and @types/mocha dev dependencies

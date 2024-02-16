@@ -1,4 +1,4 @@
-import { promisify } from "node:util";
+import { setTimeout as sleep } from "node:timers/promises";
 import { createApi } from "./api.js";
 import { loadConfig } from "./config.js";
 import { createPool, LOCK_NS_LEADER } from "./db.js";
@@ -7,8 +7,6 @@ import { migrate } from "./migrate.js";
 import { initNetworkState, tick } from "./poller.js";
 import { reconcile } from "./reconcile.js";
 import { JsonRpcClient } from "./rpc.js";
-
-const sleep = promisify(setTimeout);
 
 async function main(): Promise<void> {
   const cfg = loadConfig(process.env);
