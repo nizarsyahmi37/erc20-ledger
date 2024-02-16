@@ -123,20 +123,18 @@ function authorize(req: http.IncomingMessage, token: string): void {
   if (!crypto.timingSafeEqual(digest(got), digest(token))) throw new HttpError(401, "unauthorized");
 }
 
-function readBody(req: http.IncomingMessage): Promise<string> {
-  return new Promise((resolve, reject) => {
-    let n = 0;
-    const chunks: Buffer[] = [];
-    req.on("data", (c: Buffer) => {
-      n += c.length;
-      if (n > MAX_BODY) {
-        reject(new HttpError(413, "body too large"));
-        req.destroy();
-      } else chunks.push(c);
-    });
-    req.on("end", () => resolve(Buffer.concat(chunks).toString("utf8")));
-    req.on("error", reject);
-  });
+async function readBody(req: http.IncomingMessage): Promise<string> {
+  let size = 0;
+  const chunks: Buffer[] = [];
+  for await (const chunk of req as AsyncIterable<Buffer>) {
+    size += chunk.length;
+    if (size > MAX_BODY) {
+      req.destroy();
+      throw new HttpError(413, "body too large");
+    }
+    chunks.push(chunk);
+  }
+  return Buffer.concat(chunks).toString("utf8");
 }
 
 function send(res: http.ServerResponse, status: number, data: object): void {
