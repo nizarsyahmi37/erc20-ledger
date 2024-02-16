@@ -38,7 +38,7 @@ export function loadConfig(env: NodeJS.ProcessEnv): Config {
     databaseUrl: req(env, "DATABASE_URL"),
     networkId: int(env, "NETWORK_ID", 1, 0),
     rpcUrl: req(env, "RPC_URL"),
-    tokens: [...new Set(tokens)].sort(),
+    tokens: [...new Set(tokens)].toSorted(),
     startBlock: int(env, "START_BLOCK", 0, 0),
     confirmations: int(env, "CONFIRMATIONS", 12, 0),
     maxReorgDepth: int(env, "MAX_REORG_DEPTH", 256, 1),

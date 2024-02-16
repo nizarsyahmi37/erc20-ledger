@@ -83,7 +83,9 @@ export async function tick(pool: Pool, rpc: ChainRpc, cfg: PollerConfig): Promis
       if (l.removed) throw new Error("node returned a removed log; refusing to guess");
       if (!cfg.tokens.includes(l.address.toLowerCase())) throw new Error("node returned a log from an untracked address");
       const bh = l.blockHash.toLowerCase();
-      logsByHash.set(bh, [...(logsByHash.get(bh) ?? []), l]);
+      const bucket = logsByHash.get(bh);
+      if (bucket) bucket.push(l);
+      else logsByHash.set(bh, [l]);
     }
     const bundles: BlockBundle[] = stable.map(h => ({
       networkId: cfg.networkId,
@@ -99,7 +101,7 @@ export async function tick(pool: Pool, rpc: ChainRpc, cfg: PollerConfig): Promis
 
   // Apply as far as confirmation depth allows, using a header we just saw (and hold) as the trusted target.
   const safe = head - cfg.confirmations;
-  const target = [...headers].reverse().find(h => h.number <= safe && usable.has(h.hash));
+  const target = headers.findLast(h => h.number <= safe && usable.has(h.hash));
   if (target) {
     const r = await applyThrough(pool, cfg.networkId, target.hash);
     out.apply = r.status === "applied" ? `applied ${r.from}..${r.to}` : r.status;
