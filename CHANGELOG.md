@@ -8,6 +8,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and 
 ### Added
 - Tests for the JSON-RPC client against an in-process HTTP server: head and header parsing, id matching of reordered batch answers, eth_getLogs filter, exact uint256 decoding, totalSupply fallbacks, RpcError, retries, URL credentials and 50-call batch splitting
 - Tests for the HTTP API: health, bearer-token checks, disabled ingest, idempotent block ingestion, 409 on contradicting redelivery, confirmed balances with their block, and input validation
+- start, migrate and rebuild-balances load .env through node --env-file, so no dotenv package or shell export is needed
 
 ### Changed
 - docker-compose file uses PostgreSQL 16 (9.5 remains the minimum supported version) and drops the obsolete top-level version key used by Compose V2
@@ -27,6 +28,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and 
 - Poller picks its apply target with findLast and appends logs to buckets in place instead of copying arrays
 - Config sorts tokens with toSorted
 - Service loop sleeps with timers/promises instead of util.promisify(setTimeout)
+- .env.example documents how to run without a .env file
 
 ### Removed
 - mocha and @types/mocha dev dependencies

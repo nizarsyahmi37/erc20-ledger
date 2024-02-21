@@ -9,9 +9,9 @@
   },
   "scripts": {
     "build": "tsc -p .",
-    "start": "node dist/src/main.js",
-    "migrate": "node dist/src/migrate.js",
-    "rebuild-balances": "node dist/src/rebuild.js",
+    "start": "node --env-file=.env dist/src/main.js",
+    "migrate": "node --env-file=.env dist/src/migrate.js",
+    "rebuild-balances": "node --env-file=.env dist/src/rebuild.js",
     "test": "npm run build && node --test --test-concurrency=1 dist/test/*.test.js"
   },
   "dependencies": {
