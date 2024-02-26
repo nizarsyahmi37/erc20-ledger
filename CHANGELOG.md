@@ -3,7 +3,7 @@
 All notable changes to this project are documented in this file.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.4.0] - 2024-02-26
 
 ### Added
 - Tests for the JSON-RPC client against an in-process HTTP server: head and header parsing, id matching of reordered batch answers, eth_getLogs filter, exact uint256 decoding, totalSupply fallbacks, RpcError, retries, URL credentials and 50-call batch splitting
@@ -30,6 +30,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and 
 - Service loop sleeps with timers/promises instead of util.promisify(setTimeout)
 - .env.example documents how to run without a .env file
 - README compatibility table, quick start (docker compose, PostgreSQL 16, --env-file) and layout updated for Node 20, TypeScript 5.3, ES modules and node:test
+- Version bumped to 0.4.0; package-lock.json regenerated as lockfile v3 (npm 10)
 
 ### Removed
 - mocha and @types/mocha dev dependencies
