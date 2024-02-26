@@ -29,6 +29,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and 
 - Config sorts tokens with toSorted
 - Service loop sleeps with timers/promises instead of util.promisify(setTimeout)
 - .env.example documents how to run without a .env file
+- README compatibility table, quick start (docker compose, PostgreSQL 16, --env-file) and layout updated for Node 20, TypeScript 5.3, ES modules and node:test
 
 ### Removed
 - mocha and @types/mocha dev dependencies
