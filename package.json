@@ -15,11 +15,11 @@
     "test": "npm run build && node --test --test-concurrency=1 dist/test/*.test.js"
   },
   "dependencies": {
-    "pg": "8.11.3"
+    "pg": "8.23.1"
   },
   "devDependencies": {
     "@types/node": "26.6.4",
-    "@types/pg": "8.11.0",
+    "@types/pg": "8.23.1",
     "typescript": "7.0.2"
   }
 }

@@ -9,6 +9,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and 
 - docker-compose file uses PostgreSQL 18 (9.5 remains the minimum supported version)
 - Runtime baseline raised from Node 20.11 to Node 26 LTS (engines.node >= 26.0.0)
 - TypeScript 5.3.3 -> 7.0.2 (the native compiler) targeting ES2025 with the ES2025 library; @types/node 20 -> 26
+- pg 8.11.3 -> 8.23.1, @types/pg 8.11 -> 8.23
 
 ## [0.4.0] - 2024-02-26
 
