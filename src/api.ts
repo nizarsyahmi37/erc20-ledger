@@ -18,8 +18,11 @@ const HASH = /^0x[0-9a-fA-F]{64}$/;
 const MAX_BODY = 5 * 1024 * 1024;
 
 class HttpError extends Error {
-  constructor(public status: number, message: string) {
+  readonly status: number;
+
+  constructor(status: number, message: string) {
     super(message);
+    this.status = status;
   }
 }
 

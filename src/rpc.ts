@@ -22,8 +22,13 @@ export interface ChainRpc {
 }
 
 export class RpcError extends Error {
-  constructor(public method: string, public code: number, message: string) {
+  readonly method: string;
+  readonly code: number;
+
+  constructor(method: string, code: number, message: string) {
     super(`${method}: ${message} (${code})`);
+    this.method = method;
+    this.code = code;
   }
 }
 
@@ -44,8 +49,11 @@ export class JsonRpcClient implements ChainRpc {
   private readonly timeoutMs = 15_000;
   private readonly retries = 4;
   private readonly batchSize = 50;
+  private readonly url: string;
 
-  constructor(private readonly url: string) {}
+  constructor(url: string) {
+    this.url = url;
+  }
 
   private async post(body: unknown): Promise<any> {
     const endpoint = new URL(this.url);
