@@ -1,8 +1,8 @@
-// pg is a CommonJS package without ESM named exports, so it is imported as a default
-import pg from "pg";
+// pg ships an ES module wrapper, so its classes are plain named imports
+import { Pool as PgPool, type PoolClient } from "pg";
 
-export type Pool = pg.Pool;
-export type Conn = pg.PoolClient;
+export type Pool = PgPool;
+export type Conn = PoolClient;
 
 export interface QueryResult {
   rows: any[];
@@ -16,7 +16,7 @@ export interface Queryable {
 // int8/numeric come back from node-postgres as strings, which is what we want: uint256 amounts stay
 // decimal strings and never pass through a JS double.
 export function createPool(connectionString: string, max = 10): Pool {
-  const pool = new pg.Pool({ connectionString, max });
+  const pool = new PgPool({ connectionString, max });
   pool.on("error", err => console.error("[pg] idle client error", err.message));
   return pool;
 }
