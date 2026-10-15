@@ -8,11 +8,13 @@
     "node": ">=26.0.0"
   },
   "scripts": {
-    "build": "tsc -p .",
-    "start": "node --env-file=.env dist/src/main.js",
-    "migrate": "node --env-file=.env dist/src/migrate.js",
-    "rebuild-balances": "node --env-file=.env dist/src/rebuild.js",
-    "test": "npm run build && node --test --test-concurrency=1 dist/test/*.test.js"
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc",
+    "dev": "node --env-file=.env --watch src/main.ts",
+    "start": "node --env-file=.env dist/main.js",
+    "migrate": "node --env-file=.env dist/migrate.js",
+    "rebuild-balances": "node --env-file=.env dist/rebuild.js",
+    "test": "npm run typecheck && node --test --test-concurrency=1 test/*.test.ts"
   },
   "dependencies": {
     "pg": "8.23.1"

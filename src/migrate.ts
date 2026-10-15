@@ -3,8 +3,8 @@ import * as path from "node:path";
 import { fileURLToPath } from "node:url";
 import { createPool, type Pool, tx } from "./db.ts";
 
-// Compiled layout is dist/src/migrate.js, so migrations live two levels up.
-const DIR = path.join(import.meta.dirname, "..", "..", "migrations");
+// Both src/migrate.ts and the compiled dist/migrate.js sit one level below the repository root.
+const DIR = path.join(import.meta.dirname, "..", "migrations");
 
 export async function migrate(pool: Pool): Promise<string[]> {
   await pool.query("CREATE TABLE IF NOT EXISTS schema_migrations (name text PRIMARY KEY, applied_at timestamptz NOT NULL DEFAULT now())");

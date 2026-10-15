@@ -8,6 +8,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and 
 ### Added
 - erasableSyntaxOnly in tsconfig.json, so enums, namespaces and parameter properties can no longer slip in; every source file is now valid JavaScript once its types are removed
 - verbatimModuleSyntax in tsconfig.json
+- npm run dev starts the service from src/ with node --watch and no build step
+- npm run typecheck (tsc --noEmit); tsconfig.build.json emits only src/ into a flat dist/
 
 ### Changed
 - docker-compose file uses PostgreSQL 18 (9.5 remains the minimum supported version)
@@ -18,6 +20,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and 
 - RpcError, HttpError and JsonRpcClient declare their fields explicitly instead of using constructor parameter properties
 - Imports of interfaces and type aliases carry an inline type modifier, so the emitted modules import exactly what is written
 - Relative imports name the real .ts files; the compiler rewrites them to .js in the emitted output (rewriteRelativeImportExtensions)
+- npm test runs the .ts test files directly after a type check, so there is no compile step before the suites
+- Compiled entry points moved from dist/src/*.js to dist/*.js; migrations are resolved one level above both src/ and dist/
 
 ## [0.4.0] - 2024-02-26
 

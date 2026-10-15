@@ -15,11 +15,10 @@
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
-    "outDir": "dist",
-    "rootDir": ".",
     "erasableSyntaxOnly": true,
     "verbatimModuleSyntax": true,
-    "rewriteRelativeImportExtensions": true
+    "rewriteRelativeImportExtensions": true,
+    "noEmit": true
   },
   "include": [
     "src",
