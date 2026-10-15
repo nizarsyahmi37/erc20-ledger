@@ -1,7 +1,7 @@
 import { getCursor } from "./apply.js";
-import { Pool } from "./db.js";
+import { type Pool } from "./db.js";
 import { errorMessage } from "./errors.js";
-import { ChainRpc } from "./rpc.js";
+import { type ChainRpc } from "./rpc.js";
 
 export interface ReconcileOptions {
   networkId: number;

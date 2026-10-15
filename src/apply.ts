@@ -1,4 +1,4 @@
-import { Conn, LOCK_NS_APPLY, Pool, Queryable, tx } from "./db.js";
+import { type Conn, LOCK_NS_APPLY, type Pool, type Queryable, tx } from "./db.js";
 import { ZERO_ADDRESS } from "./decode.js";
 
 export type ApplyResult =

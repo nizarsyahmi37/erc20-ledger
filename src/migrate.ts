@@ -1,7 +1,7 @@
 import { promises as fs } from "node:fs";
 import * as path from "node:path";
 import { fileURLToPath } from "node:url";
-import { createPool, Pool, tx } from "./db.js";
+import { createPool, type Pool, tx } from "./db.js";
 
 // Compiled layout is dist/src/migrate.js, so migrations live two levels up.
 const DIR = path.join(import.meta.dirname, "..", "..", "migrations");

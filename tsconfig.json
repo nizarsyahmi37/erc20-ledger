@@ -17,7 +17,8 @@
     "forceConsistentCasingInFileNames": true,
     "outDir": "dist",
     "rootDir": ".",
-    "erasableSyntaxOnly": true
+    "erasableSyntaxOnly": true,
+    "verbatimModuleSyntax": true
   },
   "include": [
     "src",

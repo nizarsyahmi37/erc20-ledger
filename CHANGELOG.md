@@ -7,6 +7,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and 
 
 ### Added
 - erasableSyntaxOnly in tsconfig.json, so enums, namespaces and parameter properties can no longer slip in; every source file is now valid JavaScript once its types are removed
+- verbatimModuleSyntax in tsconfig.json
 
 ### Changed
 - docker-compose file uses PostgreSQL 18 (9.5 remains the minimum supported version)
@@ -15,6 +16,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and 
 - pg 8.11.3 -> 8.23.1, @types/pg 8.11 -> 8.23
 - pg is imported with named ES module exports instead of a CommonJS default import
 - RpcError, HttpError and JsonRpcClient declare their fields explicitly instead of using constructor parameter properties
+- Imports of interfaces and type aliases carry an inline type modifier, so the emitted modules import exactly what is written
 
 ## [0.4.0] - 2024-02-26
 

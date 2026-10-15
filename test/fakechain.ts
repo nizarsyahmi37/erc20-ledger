@@ -1,6 +1,6 @@
 import * as crypto from "node:crypto";
-import { RawLog, TRANSFER_TOPIC, ZERO_ADDRESS } from "../src/decode.js";
-import { ChainRpc, Header } from "../src/rpc.js";
+import { type RawLog, TRANSFER_TOPIC, ZERO_ADDRESS } from "../src/decode.js";
+import { type ChainRpc, type Header } from "../src/rpc.js";
 
 export interface Xfer {
   token: string;

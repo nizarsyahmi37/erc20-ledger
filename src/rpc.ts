@@ -1,5 +1,5 @@
 import { setTimeout as sleep } from "node:timers/promises";
-import { RawLog, TRANSFER_TOPIC } from "./decode.js";
+import { type RawLog, TRANSFER_TOPIC } from "./decode.js";
 import { errorMessage } from "./errors.js";
 
 export interface Header {

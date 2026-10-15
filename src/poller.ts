@@ -1,8 +1,8 @@
 import { applyThrough, getCursor, halt, rollbackTo } from "./apply.js";
-import { Pool } from "./db.js";
-import { decodeTransfer, RawLog } from "./decode.js";
-import { BlockBundle, ingestBundles } from "./ingest.js";
-import { ChainRpc, Header } from "./rpc.js";
+import { type Pool } from "./db.js";
+import { decodeTransfer, type RawLog } from "./decode.js";
+import { type BlockBundle, ingestBundles } from "./ingest.js";
+import { type ChainRpc, type Header } from "./rpc.js";
 
 export interface PollerConfig {
   networkId: number;
