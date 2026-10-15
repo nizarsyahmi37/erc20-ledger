@@ -17,6 +17,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and 
 - pg is imported with named ES module exports instead of a CommonJS default import
 - RpcError, HttpError and JsonRpcClient declare their fields explicitly instead of using constructor parameter properties
 - Imports of interfaces and type aliases carry an inline type modifier, so the emitted modules import exactly what is written
+- Relative imports name the real .ts files; the compiler rewrites them to .js in the emitted output (rewriteRelativeImportExtensions)
 
 ## [0.4.0] - 2024-02-26
 

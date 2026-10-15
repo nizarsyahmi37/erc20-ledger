@@ -1,12 +1,12 @@
 import { setTimeout as sleep } from "node:timers/promises";
-import { createApi } from "./api.js";
-import { loadConfig } from "./config.js";
-import { createPool, LOCK_NS_LEADER } from "./db.js";
-import { errorMessage } from "./errors.js";
-import { migrate } from "./migrate.js";
-import { initNetworkState, tick } from "./poller.js";
-import { reconcile } from "./reconcile.js";
-import { JsonRpcClient } from "./rpc.js";
+import { createApi } from "./api.ts";
+import { loadConfig } from "./config.ts";
+import { createPool, LOCK_NS_LEADER } from "./db.ts";
+import { errorMessage } from "./errors.ts";
+import { migrate } from "./migrate.ts";
+import { initNetworkState, tick } from "./poller.ts";
+import { reconcile } from "./reconcile.ts";
+import { JsonRpcClient } from "./rpc.ts";
 
 async function main(): Promise<void> {
   const cfg = loadConfig(process.env);

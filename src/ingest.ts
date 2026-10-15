@@ -1,5 +1,5 @@
-import { type Pool, tx } from "./db.js";
-import { type DecodedEvent } from "./decode.js";
+import { type Pool, tx } from "./db.ts";
+import { type DecodedEvent } from "./decode.ts";
 
 export interface BlockBundle {
   networkId: number;

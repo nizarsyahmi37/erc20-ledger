@@ -1,5 +1,5 @@
-import { type Conn, LOCK_NS_APPLY, type Pool, type Queryable, tx } from "./db.js";
-import { ZERO_ADDRESS } from "./decode.js";
+import { type Conn, LOCK_NS_APPLY, type Pool, type Queryable, tx } from "./db.ts";
+import { ZERO_ADDRESS } from "./decode.ts";
 
 export type ApplyResult =
   | { status: "applied"; from: number; to: number; blocks: number }

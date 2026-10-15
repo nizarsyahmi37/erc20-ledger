@@ -18,7 +18,8 @@
     "outDir": "dist",
     "rootDir": ".",
     "erasableSyntaxOnly": true,
-    "verbatimModuleSyntax": true
+    "verbatimModuleSyntax": true,
+    "rewriteRelativeImportExtensions": true
   },
   "include": [
     "src",

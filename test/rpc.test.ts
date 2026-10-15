@@ -3,8 +3,8 @@ import type { Server } from "node:http";
 import * as http from "node:http";
 import type { AddressInfo } from "node:net";
 import { after, before, beforeEach, describe, it } from "node:test";
-import { TRANSFER_TOPIC } from "../src/decode.js";
-import { JsonRpcClient, RpcError } from "../src/rpc.js";
+import { TRANSFER_TOPIC } from "../src/decode.ts";
+import { JsonRpcClient, RpcError } from "../src/rpc.ts";
 
 interface Call {
   jsonrpc: string;

@@ -1,10 +1,10 @@
 import * as crypto from "node:crypto";
 import * as http from "node:http";
 import { URL } from "node:url";
-import { getCursor } from "./apply.js";
-import { type Pool } from "./db.js";
-import { decodeTransfer, type DecodedEvent, type RawLog } from "./decode.js";
-import { ingestBundles, IngestConflictError } from "./ingest.js";
+import { getCursor } from "./apply.ts";
+import { type Pool } from "./db.ts";
+import { decodeTransfer, type DecodedEvent, type RawLog } from "./decode.ts";
+import { ingestBundles, IngestConflictError } from "./ingest.ts";
 
 export interface ApiDeps {
   pool: Pool;

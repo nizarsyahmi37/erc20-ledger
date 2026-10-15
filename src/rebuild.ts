@@ -1,5 +1,5 @@
-import { rebuildBalances } from "./apply.js";
-import { createPool } from "./db.js";
+import { rebuildBalances } from "./apply.ts";
+import { createPool } from "./db.ts";
 
 const networkId = Number(process.env.NETWORK_ID || 1);
 const pool = createPool(process.env.DATABASE_URL || "");

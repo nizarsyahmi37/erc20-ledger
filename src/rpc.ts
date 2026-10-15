@@ -1,6 +1,6 @@
 import { setTimeout as sleep } from "node:timers/promises";
-import { type RawLog, TRANSFER_TOPIC } from "./decode.js";
-import { errorMessage } from "./errors.js";
+import { type RawLog, TRANSFER_TOPIC } from "./decode.ts";
+import { errorMessage } from "./errors.ts";
 
 export interface Header {
   number: number;
