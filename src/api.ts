@@ -1,6 +1,5 @@
-import * as crypto from "node:crypto";
+import { hash, timingSafeEqual } from "node:crypto";
 import * as http from "node:http";
-import { URL } from "node:url";
 import { getCursor } from "./apply.ts";
 import { type Pool } from "./db.ts";
 import { decodeTransfer, type DecodedEvent, type RawLog } from "./decode.ts";
@@ -121,9 +120,9 @@ async function ingest(d: ApiDeps, b: any): Promise<object> {
 
 // Compare digests so timingSafeEqual always sees equal-length buffers and the token length doesn't leak.
 function authorize(req: http.IncomingMessage, token: string): void {
-  const digest = (s: string) => crypto.createHash("sha256").update(s).digest();
+  const digest = (s: string) => hash("sha256", s, "buffer");
   const got = String(req.headers.authorization || "").replace(/^Bearer /, "");
-  if (!crypto.timingSafeEqual(digest(got), digest(token))) throw new HttpError(401, "unauthorized");
+  if (!timingSafeEqual(digest(got), digest(token))) throw new HttpError(401, "unauthorized");
 }
 
 async function readBody(req: http.IncomingMessage): Promise<string> {

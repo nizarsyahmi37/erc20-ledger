@@ -23,6 +23,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and 
 - npm test runs the .ts test files directly after a type check, so there is no compile step before the suites
 - Compiled entry points moved from dist/src/*.js to dist/*.js; migrations are resolved one level above both src/ and dist/
 - migrate.ts runs its CLI when it is the main module via import.meta.main instead of comparing process.argv[1] with the module URL
+- Bearer token comparison digests with crypto.hash() instead of a createHash/update/digest chain; the global URL replaces the redundant node:url import
 
 ## [0.4.0] - 2024-02-26
 
