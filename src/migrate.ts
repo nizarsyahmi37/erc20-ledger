@@ -1,6 +1,5 @@
 import { promises as fs } from "node:fs";
 import * as path from "node:path";
-import { fileURLToPath } from "node:url";
 import { createPool, type Pool, tx } from "./db.ts";
 
 // Both src/migrate.ts and the compiled dist/migrate.js sit one level below the repository root.
@@ -23,7 +22,7 @@ export async function migrate(pool: Pool): Promise<string[]> {
   return done;
 }
 
-if (process.argv[1] === fileURLToPath(import.meta.url)) {
+if (import.meta.main) {
   const pool = createPool(process.env.DATABASE_URL || "");
   migrate(pool)
     .then(done => console.log(done.length > 0 ? `applied: ${done.join(", ")}` : "up to date"))
