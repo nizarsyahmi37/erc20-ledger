@@ -24,6 +24,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and 
 - Compiled entry points moved from dist/src/*.js to dist/*.js; migrations are resolved one level above both src/ and dist/
 - migrate.ts runs its CLI when it is the main module via import.meta.main instead of comparing process.argv[1] with the module URL
 - Bearer token comparison digests with crypto.hash() instead of a createHash/update/digest chain; the global URL replaces the redundant node:url import
+- The Basic auth header is built with the built-in Uint8Array base64 encoder instead of a Buffer round trip
+- tsconfig lib adds esnext.typedarrays for the typings of the Uint8Array base64 and hex methods
 
 ## [0.4.0] - 2024-02-26
 

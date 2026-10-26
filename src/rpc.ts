@@ -61,7 +61,7 @@ export class JsonRpcClient implements ChainRpc {
     if (endpoint.username) {
       // fetch() refuses URLs with embedded credentials, so move them into a Basic auth header
       const credentials = `${decodeURIComponent(endpoint.username)}:${decodeURIComponent(endpoint.password)}`;
-      headers.Authorization = `Basic ${Buffer.from(credentials).toString("base64")}`;
+      headers.Authorization = `Basic ${new TextEncoder().encode(credentials).toBase64()}`;
       endpoint.username = "";
       endpoint.password = "";
     }
