@@ -26,6 +26,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and 
 - Bearer token comparison digests with crypto.hash() instead of a createHash/update/digest chain; the global URL replaces the redundant node:url import
 - The Basic auth header is built with the built-in Uint8Array base64 encoder instead of a Buffer round trip
 - tsconfig lib adds esnext.typedarrays for the typings of the Uint8Array base64 and hex methods
+- Poller buckets logs by block hash with Map.groupBy after validating them in a separate pass
+- Ingest turns map iterators into arrays with Iterator.prototype.toArray instead of spreading
 
 ## [0.4.0] - 2024-02-26
 

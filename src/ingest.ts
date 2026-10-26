@@ -27,7 +27,7 @@ function dedupeEvents(b: BlockBundle): DecodedEvent[] {
     if (prev && !sameEvent(prev, e)) throw new IngestConflictError(`conflicting logs for ${b.hash}:${e.logIndex}`);
     m.set(e.logIndex, e);
   }
-  return [...m.values()].sort((x, y) => x.logIndex - y.logIndex);
+  return m.values().toArray().sort((x, y) => x.logIndex - y.logIndex);
 }
 
 function assertSameBundle(a: BlockBundle, b: BlockBundle): void {
@@ -54,7 +54,7 @@ export async function ingestBundles(pool: Pool, bundles: BlockBundle[]): Promise
     if (seen) assertSameBundle(seen, b);
     else byHash.set(b.hash, { ...b, events: dedupeEvents(b) });
   }
-  const list = [...byHash.values()];
+  const list = byHash.values().toArray();
 
   return tx(pool, async c => {
     const ins = await c.query(

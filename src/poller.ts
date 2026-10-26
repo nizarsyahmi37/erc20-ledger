@@ -1,6 +1,6 @@
 import { applyThrough, getCursor, halt, rollbackTo } from "./apply.ts";
 import { type Pool } from "./db.ts";
-import { decodeTransfer, type RawLog } from "./decode.ts";
+import { decodeTransfer } from "./decode.ts";
 import { type BlockBundle, ingestBundles } from "./ingest.ts";
 import { type ChainRpc, type Header } from "./rpc.ts";
 
@@ -78,15 +78,11 @@ export async function tick(pool: Pool, rpc: ChainRpc, cfg: PollerConfig): Promis
     for (const h of (await rpc.getHeaders(lo, hi)).filter(present)) afterHash.set(h.number, h.hash);
     const stable = unknown.filter(h => afterHash.get(h.number) === h.hash);
 
-    const logsByHash = new Map<string, RawLog[]>();
     for (const l of logs) {
       if (l.removed) throw new Error("node returned a removed log; refusing to guess");
       if (!cfg.tokens.includes(l.address.toLowerCase())) throw new Error("node returned a log from an untracked address");
-      const bh = l.blockHash.toLowerCase();
-      const bucket = logsByHash.get(bh);
-      if (bucket) bucket.push(l);
-      else logsByHash.set(bh, [l]);
     }
+    const logsByHash = Map.groupBy(logs, l => l.blockHash.toLowerCase());
     const bundles: BlockBundle[] = stable.map(h => ({
       networkId: cfg.networkId,
       number: h.number,
