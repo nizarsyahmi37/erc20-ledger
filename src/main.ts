@@ -1,4 +1,3 @@
-import { setTimeout as sleep } from "node:timers/promises";
 import { createApi } from "./api.ts";
 import { loadConfig } from "./config.ts";
 import { createPool, LOCK_NS_LEADER } from "./db.ts";
@@ -7,6 +6,7 @@ import { migrate } from "./migrate.ts";
 import { initNetworkState, tick } from "./poller.ts";
 import { reconcile } from "./reconcile.ts";
 import { JsonRpcClient } from "./rpc.ts";
+import { pause } from "./time.ts";
 
 async function main(): Promise<void> {
   const cfg = loadConfig(process.env);
@@ -18,9 +18,12 @@ async function main(): Promise<void> {
   const api = createApi({ pool, networkId: cfg.networkId, tokens: cfg.tokens, ingestToken: cfg.ingestToken });
   api.listen(cfg.apiPort, () => console.log(`api on :${cfg.apiPort}`));
 
-  let stopping = false;
+  // The first SIGINT/SIGTERM aborts the signal, which also cuts any sleep short; a second one exits at once.
+  const shutdown = new AbortController();
   const stop = () => {
-    stopping = true;
+    if (shutdown.signal.aborted) process.exit(1);
+    console.log("shutting down");
+    shutdown.abort();
   };
   process.on("SIGINT", stop);
   process.on("SIGTERM", stop);
@@ -28,16 +31,16 @@ async function main(): Promise<void> {
   // Single active writer per network. Correctness does not depend on this (apply is transactional and
   // locked); it just avoids N replicas doing identical RPC work. Held on a dedicated connection.
   const leader = await pool.connect();
-  while (!stopping) {
+  while (!shutdown.signal.aborted) {
     const r = await leader.query("SELECT pg_try_advisory_lock($1, $2) AS ok", [LOCK_NS_LEADER, cfg.networkId]);
     if (r.rows[0].ok) break;
     console.log("standby: another instance holds the leader lock");
-    await sleep(10_000);
+    await pause(10_000, shutdown.signal);
   }
 
   let lastReconcile = 0;
   let fatal = false;
-  while (!stopping) {
+  while (!shutdown.signal.aborted) {
     let behind = false;
     try {
       const t = await tick(pool, rpc, cfg);
@@ -50,7 +53,7 @@ async function main(): Promise<void> {
         fatal = true; // needs an operator
         break;
       }
-      await sleep(cfg.pollIntervalMs);
+      await pause(cfg.pollIntervalMs, shutdown.signal);
       continue;
     }
     if (cfg.reconcileIntervalMs > 0 && Date.now() - lastReconcile > cfg.reconcileIntervalMs) {
@@ -59,7 +62,7 @@ async function main(): Promise<void> {
       const log = r.status === "ok" ? console.log : console.error;
       log(`[reconcile] ${r.status} block=${r.blockNumber} checked=${r.checked} mismatched=${r.mismatched} ${r.detail ?? ""}`);
     }
-    if (!behind) await sleep(cfg.pollIntervalMs);
+    if (!behind) await pause(cfg.pollIntervalMs, shutdown.signal);
   }
   api.close();
   leader.release();

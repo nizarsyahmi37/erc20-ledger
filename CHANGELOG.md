@@ -10,6 +10,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and 
 - verbatimModuleSyntax in tsconfig.json
 - npm run dev starts the service from src/ with node --watch and no build step
 - npm run typecheck (tsc --noEmit); tsconfig.build.json emits only src/ into a flat dist/
+- pause(ms, signal) helper that sleeps but wakes immediately when an AbortSignal fires, with tests
 
 ### Changed
 - docker-compose file uses PostgreSQL 18 (9.5 remains the minimum supported version)
@@ -28,6 +29,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and 
 - tsconfig lib adds esnext.typedarrays for the typings of the Uint8Array base64 and hex methods
 - Poller buckets logs by block hash with Map.groupBy after validating them in a separate pass
 - Ingest turns map iterators into arrays with Iterator.prototype.toArray instead of spreading
+- The poll, standby and failure back-off sleeps are interruptible, so a signal no longer waits out POLL_INTERVAL_MS before the API, leader lock and pool are released
+- A second signal exits immediately
 
 ## [0.4.0] - 2024-02-26
 
