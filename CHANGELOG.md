@@ -11,6 +11,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and 
 - npm run dev starts the service from src/ with node --watch and no build step
 - npm run typecheck (tsc --noEmit); tsconfig.build.json emits only src/ into a flat dist/
 - pause(ms, signal) helper that sleeps but wakes immediately when an AbortSignal fires, with tests
+- npm run coverage uses the test runner's built-in coverage over src/ (entry points excluded) and fails below 80% line coverage
 
 ### Changed
 - docker-compose file uses PostgreSQL 18 (9.5 remains the minimum supported version)

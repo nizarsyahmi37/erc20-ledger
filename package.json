@@ -14,7 +14,8 @@
     "start": "node --env-file=.env dist/main.js",
     "migrate": "node --env-file=.env dist/migrate.js",
     "rebuild-balances": "node --env-file=.env dist/rebuild.js",
-    "test": "npm run typecheck && node --test --test-concurrency=1 test/*.test.ts"
+    "test": "npm run typecheck && node --test --test-concurrency=1 test/*.test.ts",
+    "coverage": "node --test --test-concurrency=1 --experimental-test-coverage --test-coverage-include='src/**/*.ts' --test-coverage-exclude=src/main.ts --test-coverage-exclude=src/rebuild.ts --test-coverage-lines=80 test/*.test.ts"
   },
   "dependencies": {
     "pg": "8.23.1"
