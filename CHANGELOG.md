@@ -12,6 +12,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and 
 - npm run typecheck (tsc --noEmit); tsconfig.build.json emits only src/ into a flat dist/
 - pause(ms, signal) helper that sleeps but wakes immediately when an AbortSignal fires, with tests
 - npm run coverage uses the test runner's built-in coverage over src/ (entry points excluded) and fails below 80% line coverage
+- .nvmrc selecting Node 26
+- .npmrc with save-exact (dependencies stay pinned like the existing ones) and engine-strict (installing on a Node older than engines.node fails instead of warning)
 
 ### Changed
 - docker-compose file uses PostgreSQL 18 (9.5 remains the minimum supported version)
