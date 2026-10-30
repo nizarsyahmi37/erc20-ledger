@@ -34,6 +34,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and 
 - Ingest turns map iterators into arrays with Iterator.prototype.toArray instead of spreading
 - The poll, standby and failure back-off sleeps are interruptible, so a signal no longer waits out POLL_INTERVAL_MS before the API, leader lock and pool are released
 - A second signal exits immediately
+- README compatibility table, quick start (PostgreSQL 18, npm run dev, coverage) and layout updated for Node 26, TypeScript 7 and running TypeScript directly
 
 ## [0.4.0] - 2024-02-26
 

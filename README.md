@@ -4,36 +4,38 @@ Indexes ERC-20 (EIP-20) `Transfer` events, including mints and burns, into Postg
 balances that stay correct under duplicates, out-of-order delivery and chain reorgs, and continuously
 reconciles those balances against the chain.
 
-TypeScript 5.3 as native ES modules, Node.js >= 20.11 (LTS), PostgreSQL >= 9.5 (developed against 16), a geth, Nethermind, Erigon or Reth JSON-RPC endpoint.
+TypeScript 7 as native ES modules, Node.js >= 26 (LTS), PostgreSQL >= 9.5 (developed against 18), a geth, Nethermind, Erigon or Reth JSON-RPC endpoint.
 
 ```
-docker compose up -d                 # postgres 16 on :5433
+docker compose up -d                 # postgres 18 on :5433
 cp .env.example .env                 # set RPC_URL, TOKENS, START_BLOCK (loaded with node --env-file)
 npm ci && npm run build
 npm run migrate
 npm start                            # poller + API + periodic reconciliation
+npm run dev                          # same, straight from src/ with --watch (no build)
 TEST_DATABASE_URL=postgres://... npm test
+TEST_DATABASE_URL=postgres://... npm run coverage
 ```
 
 The npm scripts load `.env` with `node --env-file`. To configure through the real environment instead, export
-the variables and run `node dist/src/main.js` (or `migrate.js`, `rebuild.js`) directly.
+the variables and run `node dist/main.js` (or `migrate.js`, `rebuild.js`) directly.
 
 API: `GET /healthz`, `GET /balances/:token/:holder`, `POST /ingest` (optional, bearer-auth).
 
 ## Compatibility baseline
 
-Everything here was chosen to exist in February 2024.
+Everything here was chosen to exist in October 2026.
 
 | Piece | Version | Notes |
 |---|---|---|
-| Node.js | 20.11 LTS ("Iron") | native ES modules (`import.meta.dirname`), global `fetch` and `AbortSignal.timeout`, `node:test`, `--env-file`, `Array#findLast` / `toSorted`, `timers/promises`; no `--env-file-if-exists` (Node 22), no `Object.groupBy` (Node 21), no `require(esm)` |
-| TypeScript | 5.3.3 | `module: NodeNext`, `strict` including `unknown` catch variables; `verbatimModuleSyntax` is not enabled |
-| PostgreSQL | 16 (>= 9.5) | `INSERT ... ON CONFLICT` is the idempotency primitive; multi-array `UNNEST`, recursive CTEs; SCRAM-SHA-256 is the default password scheme |
-| pg (node-postgres) | 8.11.3 | built-in `Pool`; a CommonJS package, so it is imported as a default from ESM |
-| Test runner | `node:test` + `node:assert/strict` | no mocha; `--test-concurrency=1` because the suites share one database |
-| `@types/*` | node 20.11, pg 8.11 | |
-| JSON-RPC | geth 1.13 / Nethermind / Erigon / Reth | `eth_getBlockByNumber`, `eth_getLogs` (range), `eth_call` at a block, batch requests |
-| Lockfile | npm 10 `package-lock.json` (v3) | install with `npm ci` |
+| Node.js | 26 LTS ("Lithium") | runs `.ts` files directly (type stripping), `import.meta.main`, `Map.groupBy`, iterator helpers (`toArray`), `crypto.hash`, `Uint8Array#toBase64`, `AbortSignal`-aware `timers/promises`, `node:test` with built-in coverage, `--env-file` |
+| TypeScript | 7.0.2 (native compiler) | `module: NodeNext`, `strict`, `erasableSyntaxOnly`, `verbatimModuleSyntax`, `rewriteRelativeImportExtensions`; type checking only, `tsc -p tsconfig.build.json` emits `dist/` |
+| PostgreSQL | 18 (>= 9.5) | `INSERT ... ON CONFLICT` is the idempotency primitive; multi-array `UNNEST`, recursive CTEs |
+| pg (node-postgres) | 8.23.1 | built-in `Pool`; imported through pg's ES module named exports |
+| Test runner | `node:test` + `node:assert/strict` | `--test-concurrency=1` because the suites share one database; `npm run coverage` enforces 80% line coverage |
+| `@types/*` | node 26.6.4, pg 8.23 | |
+| JSON-RPC | geth / Nethermind / Erigon / Reth | `eth_getBlockByNumber`, `eth_getLogs` (range), `eth_call` at a block, batch requests |
+| Lockfile | npm 11 `package-lock.json` (v3) | install with `npm ci`; `.npmrc` saves exact versions and enforces `engines` |
 
 Consequences worth knowing: the `eth_getLogs` `blockHash` filter (EIP-234) is available on most clients
 now but not on every provider, so the service still gets fork-consistent logs with a header/log/header
@@ -194,6 +196,7 @@ enumerated on-chain; it shows up as a `*supply*` mismatch instead. Monitor `stat
 ```
 migrations/001_init.sql   schema (hash-keyed blocks/events, applied_blocks, balances, reconciliation_*)
 src/db.ts                 pg Pool setup, tx() helper, lock namespaces
+src/time.ts               pause(): a sleep that an AbortSignal can cut short
 src/errors.ts             errorMessage() for unknown caught values
 src/decode.ts             Transfer -> mint|burn|transfer; uint256 as decimal string
 src/ingest.ts             atomic, idempotent, order-independent block persistence
@@ -203,6 +206,7 @@ src/reconcile.ts          pinned-block comparison against eth_call
 src/rpc.ts                JSON-RPC client (batching, retries) behind the ChainRpc interface
 src/api.ts, main.ts       HTTP API, leader lock, scheduler
 test/ledger.test.ts       15 tests against real Postgres with an in-memory forking chain
+test/time.test.ts         pause() and abort handling
 test/rpc.test.ts          JSON-RPC client against a local HTTP server (no database needed)
 test/api.test.ts          HTTP API against real Postgres
 ```
