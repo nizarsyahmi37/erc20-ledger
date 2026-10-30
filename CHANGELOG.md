@@ -3,7 +3,7 @@
 All notable changes to this project are documented in this file.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.5.0] - 2026-10-30
 
 ### Added
 - erasableSyntaxOnly in tsconfig.json, so enums, namespaces and parameter properties can no longer slip in; every source file is now valid JavaScript once its types are removed
@@ -35,6 +35,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and 
 - The poll, standby and failure back-off sleeps are interruptible, so a signal no longer waits out POLL_INTERVAL_MS before the API, leader lock and pool are released
 - A second signal exits immediately
 - README compatibility table, quick start (PostgreSQL 18, npm run dev, coverage) and layout updated for Node 26, TypeScript 7 and running TypeScript directly
+- Version bumped to 0.5.0; package-lock.json regenerated (lockfile v3, npm 11)
 
 ## [0.4.0] - 2024-02-26
 
